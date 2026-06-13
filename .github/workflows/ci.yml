@@ -1,0 +1,21 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build-and-test:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Show Swift toolchain
+        run: swift --version
+
+      # Release build + the framework-free smoke runner (Command Line Tools
+      # ship no XCTest/Testing, so the suite is a plain executable).
+      - name: Build and test
+        run: ./scripts/test.sh
