@@ -133,16 +133,34 @@ private final class GlassConfiguratorView: NSView {
     private func restorePositionIfNeeded(_ window: NSWindow) {
         guard let key = rememberPositionKey,
               let dict = UserDefaults.standard.dictionary(forKey: key),
-              let x = dict["x"] as? Double, let topY = dict["topY"] as? Double else { return }
-        // Persist the TOP-left so windows of differing height re-anchor naturally.
-        let origin = NSPoint(x: x, y: topY - window.frame.height)
+              let origin = SignetWindowGeometry.restoredOrigin(from: dict,
+                                                               windowHeight: window.frame.height)
+        else { return }
         window.setFrameOrigin(origin)
     }
 
     @objc private func savePositionIfNeeded() {
         guard let key = rememberPositionKey, let window = self.window else { return }
         let f = window.frame
+        // Don't persist a non-finite frame (can occur mid-teardown / off-screen
+        // animations) — a NaN written here corrupts the next launch's restore.
+        guard f.origin.x.isFinite, (f.origin.y + f.height).isFinite else { return }
         UserDefaults.standard.set(["x": Double(f.origin.x),
                                    "topY": Double(f.origin.y + f.height)], forKey: key)
+    }
+}
+
+// Pure window-geometry helpers, split out so the persistence math can be
+// unit-tested without an NSWindow (the smoke runner reaches it across modules).
+public enum SignetWindowGeometry {
+    /// Decode a persisted position dict into a window origin, rejecting missing
+    /// keys, wrong types, and non-finite (NaN/±Infinity) values — any of which
+    /// would otherwise be handed straight to `setFrameOrigin` and fling the
+    /// window off-screen. We persist the TOP-left so windows of differing height
+    /// re-anchor naturally; this converts it back to a bottom-left origin.
+    public static func restoredOrigin(from dict: [String: Any], windowHeight: CGFloat) -> CGPoint? {
+        guard let x = dict["x"] as? Double, let topY = dict["topY"] as? Double,
+              x.isFinite, topY.isFinite, windowHeight.isFinite else { return nil }
+        return CGPoint(x: x, y: topY - windowHeight)
     }
 }

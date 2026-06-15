@@ -21,7 +21,13 @@ public extension Color {
     /// fall back to clear rather than crashing.
     init(hex string: String, opacity: Double = 1) {
         let cleaned = string.hasPrefix("#") ? String(string.dropFirst()) : string
-        if let value = UInt32(cleaned, radix: 16), cleaned.count == 6 {
+        // Require EXACTLY six hex digits. `UInt32(_:radix:)` alone is too
+        // permissive — it accepts a leading sign (`"+abcde"`, `"-abcde"`), so
+        // the length check is not enough to reject malformed input. Validate
+        // the character set ourselves so only true `RRGGBB` parses.
+        let isSixHexDigits = cleaned.count == 6
+            && cleaned.allSatisfy { $0.isHexDigit && $0.isASCII }
+        if isSixHexDigits, let value = UInt32(cleaned, radix: 16) {
             self.init(hex: value, opacity: opacity)
         } else {
             self = .clear
