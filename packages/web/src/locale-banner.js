@@ -13,7 +13,9 @@
  * markup + config for you. Config shape:
  *   {
  *     current: 'zh-tw',          // the page's locale id
- *     defaultLocale: 'en-us',    // the locale served at the bare path (no prefix)
+ *     defaultLocale: 'en-us',    // (prefix strategy) the locale at the bare path
+ *     hrefStrategy?: 'prefix',   // 'prefix' (URL /<loc>/path, default) | 'query'
+ *     queryParam?: 'lang',       // (query strategy) the locale param name
  *     storageKey?: 'signet-locale-banner-dismiss',
  *     excludePath?: '/language', // regex string; banner stays hidden on matches
  *     options: [{ id, match: ['zh'], prompt, continue, dismiss }, ...]
@@ -58,6 +60,20 @@ function hrefFor(loc, defaultLocale, bare) {
   return clean === '/' ? '/' + loc + '/' : '/' + loc + clean;
 }
 
+// The link that switches to the suggested locale, per the host's i18n model:
+//   'prefix' (default) — strip the current locale prefix, add the suggested one
+//                        (en-us at the bare path; others at /<loc>/path).
+//   'query'            — keep the path, set ?<queryParam>=<loc> (for sites that
+//                        switch via a query param + cookie, e.g. paraglide).
+function switchHref(suggested, current, defaultLocale, hrefStrategy, queryParam) {
+  if (hrefStrategy === 'query') {
+    var u = new URL(window.location.href);
+    u.searchParams.set(queryParam || 'lang', suggested);
+    return u.pathname + u.search + u.hash;
+  }
+  return hrefFor(suggested, defaultLocale, barePath(current, defaultLocale));
+}
+
 function wire(banner) {
   var cfg;
   try {
@@ -71,6 +87,8 @@ function wire(banner) {
   var defaultLocale = cfg.defaultLocale || (options[0] && options[0].id);
   var storageKey = cfg.storageKey || 'signet-locale-banner-dismiss';
   var excludePath = cfg.excludePath;
+  var hrefStrategy = cfg.hrefStrategy || 'prefix';
+  var queryParam = cfg.queryParam || 'lang';
 
   if (!banner.__signetWired) {
     banner.__signetWired = true;
@@ -121,7 +139,7 @@ function wire(banner) {
 
   msg.textContent = pick.prompt || '';
   cont.textContent = pick.continue || '';
-  cont.setAttribute('href', hrefFor(suggested, defaultLocale, barePath(current, defaultLocale)));
+  cont.setAttribute('href', switchHref(suggested, current, defaultLocale, hrefStrategy, queryParam));
   if (dismiss && pick.dismiss) dismiss.textContent = pick.dismiss;
 
   banner.hidden = false;

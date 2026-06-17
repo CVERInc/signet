@@ -1,6 +1,6 @@
 {
   "name": "@cvernet/signet",
-  "version": "0.2.1",
+  "version": "0.3.0",
   "description": "The web side of the Signet design seal — CVER's shared web design elements. Framework-agnostic CSS with Astro and Svelte components.",
   "license": "MIT",
   "type": "module",

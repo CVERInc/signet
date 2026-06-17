@@ -106,13 +106,21 @@ const PREFIXES = { 'en-us': ['en'], 'ja-jp': ['ja'], 'ko-kr': ['ko'], 'zh-tw': [
 
 Svelte is the same, from `@cvernet/signet/LocaleBanner.svelte`.
 
-Props: `current` (page locale id), `defaultLocale` (the locale at the bare path,
-no prefix), `options` (one per locale that has *this* page — `{ id, match: string[],
-prompt, continue, dismiss? }`, each addressed in the language it suggests),
-`excludePath?` (regex string, e.g. the language picker page), `storageKey?`,
-`ariaLabel?`, `class?` (e.g. bleedblend's `bleedblend-top bleedblend-push` so it
-tints the chrome and pushes content), `id?`.
+Props: `current` (page locale id), `options` (one per locale that has *this*
+page — `{ id, match: string[], prompt, continue, dismiss? }`, each addressed in
+the language it suggests), `excludePath?` (regex string, e.g. the language picker
+page), `storageKey?`, `ariaLabel?`, `class?` (e.g. bleedblend's `bleedblend-top
+bleedblend-push` so it tints the chrome and pushes content), `id?`.
 
-The href to switch is built client-side (strip the current locale prefix off the
-URL, add the suggested one) so it stays correct across view transitions. SSR-safe;
-add `.bleedblend-push` if you want it to push content instead of overlaying it.
+**Switch-href strategy** — how the "switch" link is built, to match your i18n:
+
+- `hrefStrategy="prefix"` (default) + `defaultLocale` (e.g. `"en-us"`): URL-prefix
+  routing — strip the current locale prefix off the URL, add the suggested one
+  (`en-us` at the bare path, others at `/<loc>/path`). Used by cver.net.
+- `hrefStrategy="query"` + `queryParam` (default `"lang"`): keep the path, set
+  `?<param>=<loc>` — for sites that switch via a query param + cookie (e.g.
+  paraglide). Used by feelreef.
+
+The href is built client-side so it stays correct across view transitions.
+SSR-safe; add `.bleedblend-push` if you want it to push content instead of
+overlaying it.

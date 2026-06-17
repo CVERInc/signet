@@ -25,8 +25,10 @@
   import { onMount } from 'svelte';
 
   export let current;
-  export let defaultLocale;
+  export let defaultLocale = undefined; // required for hrefStrategy 'prefix'
   export let options;
+  export let hrefStrategy = undefined; // 'prefix' (default) | 'query'
+  export let queryParam = undefined; // for 'query' strategy
   export let ariaLabel = 'Language';
   export let storageKey = undefined;
   export let excludePath = undefined;
@@ -34,7 +36,7 @@
   let extraClass = '';
   export { extraClass as class };
 
-  $: config = JSON.stringify({ current, defaultLocale, options, storageKey, excludePath });
+  $: config = JSON.stringify({ current, defaultLocale, options, hrefStrategy, queryParam, storageKey, excludePath });
 
   onMount(async () => {
     const mod = await import('@cvernet/signet/locale-banner.js');

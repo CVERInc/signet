@@ -29,8 +29,12 @@ interface Option {
 }
 interface Props {
   current: string;
-  defaultLocale: string;
+  /** Required for hrefStrategy "prefix" (the default): the locale at the bare
+      path. Ignored for "query". */
+  defaultLocale?: string;
   options: Option[];
+  hrefStrategy?: 'prefix' | 'query';
+  queryParam?: string;
   ariaLabel?: string;
   storageKey?: string;
   excludePath?: string;
@@ -41,13 +45,15 @@ const {
   current,
   defaultLocale,
   options,
+  hrefStrategy,
+  queryParam,
   ariaLabel = 'Language',
   storageKey,
   excludePath,
   class: extraClass = '',
   id = 'signet-locale-banner',
 } = Astro.props;
-const config = { current, defaultLocale, options, storageKey, excludePath };
+const config = { current, defaultLocale, options, hrefStrategy, queryParam, storageKey, excludePath };
 ---
 
 <div
