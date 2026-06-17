@@ -57,6 +57,31 @@ import Signet
 CVER apps pin in-house deps to `branch: "main"` / latest — see the family
 convention — so improvements land everywhere on the next build.
 
+> **Monorepo note.** The SwiftUI sources live under `packages/native/`, but
+> `Package.swift` stays at the repo root — SPM resolves a git-url dependency's
+> manifest only at the root. The product/module name is still `Signet`, so the
+> `.package(url:)` above is unchanged; consuming apps don't move.
+
+## Web side — `@cver/signet`
+
+The same seal, on the web. CVER's websites (cver.net, feelreef, …) drift on the
+*same* design language the native apps do, so the web shares one source of truth
+too — the npm package in [`packages/web`](packages/web). Framework-agnostic CSS
+with thin Astro and Svelte wrappers.
+
+```bash
+npm install @cver/signet
+```
+
+```ts
+import '@cver/signet/arrow.css';
+import Arrow from '@cver/signet/Arrow.astro';   // or .../Arrow.svelte
+```
+
+See [`packages/web/README.md`](packages/web/README.md). First element: the
+directional link arrow (tail-retract hover morph, one animation rotated for
+right / left / up-right).
+
 ## The one rule worth repeating
 
 `.liquidGlassCard()` is for **chrome** — sidebars, toolbars, cards, overlays.

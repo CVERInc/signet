@@ -1,0 +1,32 @@
+{
+  "name": "@cver/signet",
+  "version": "0.1.0",
+  "description": "The web side of the Signet design seal — CVER's shared web design elements. Framework-agnostic CSS with Astro and Svelte components.",
+  "license": "MIT",
+  "type": "module",
+  "homepage": "https://github.com/CVERInc/signet/tree/main/packages/web",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/CVERInc/signet.git",
+    "directory": "packages/web"
+  },
+  "files": [
+    "src"
+  ],
+  "exports": {
+    "./arrow.css": "./src/arrow.css",
+    "./Arrow.astro": "./src/Arrow.astro",
+    "./Arrow.svelte": "./src/Arrow.svelte"
+  },
+  "keywords": [
+    "cver",
+    "design-system",
+    "arrow",
+    "astro",
+    "svelte",
+    "css"
+  ],
+  "sideEffects": [
+    "*.css"
+  ]
+}

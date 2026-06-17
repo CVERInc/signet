@@ -1,0 +1,72 @@
+/* @cver/signet — directional arrow with a tail-retract hover morph.
+ *
+ * At REST the element is a full arrow (chevron + tail). On hover of the
+ * nearest `.group` ancestor — or the enclosing `<a>` — the tail retracts
+ * rightward INTO the chevron (→ collapses to >). One animation; `rotate()`
+ * adapts it to every direction:
+ *   right  (default) → 0deg   link / next
+ *   left   (--left)  → 180deg back / previous
+ *   up-right (--up-right) → -45deg external / outbound
+ *
+ * Geometry is the canonical CVER arrow (chevron `10 6 16 12 10 18`,
+ * stroke 2). The tail weight tracks the chevron stroke (size / 12) so the
+ * whole arrow thickens and thins as one unit at any size — set
+ * `--signet-arrow-w` to the rendered size (the components do this for you).
+ *
+ * Pure CSS + SVG. currentColor throughout. No JS, SSR-friendly. Import once:
+ *   import '@cver/signet/arrow.css';
+ */
+
+.signet-arrow {
+  position: relative;
+  display: inline-block;
+  flex-shrink: 0;
+  vertical-align: -2px;
+}
+
+.signet-arrow--left {
+  transform: rotate(180deg);
+}
+.signet-arrow--up-right {
+  transform: rotate(-45deg);
+}
+
+.signet-arrow__tail {
+  position: absolute;
+  top: 50%;
+  left: 12%;
+  width: 55%;
+  /* = the chevron's rendered stroke width (stroke-width 2 in a 24 viewBox at
+     `size` px = size / 12), so head and tail are one consistent weight that
+     scales together. */
+  height: calc(var(--signet-arrow-w, 16px) / 12);
+  background: currentColor;
+  border-radius: 9999px;
+  transform: translateY(-50%);
+  transition:
+    width 200ms ease-out,
+    left 200ms ease-out;
+}
+
+.signet-arrow__head {
+  position: absolute;
+  inset: 0;
+}
+
+/* Hover/focus retracts the tail into the chevron. Triggers from a `.group`
+   ancestor (cards, tertiary buttons), the enclosing anchor (plain links and
+   primary/secondary buttons), or the arrow itself. */
+.group:hover .signet-arrow__tail,
+.group:focus-visible .signet-arrow__tail,
+a:hover .signet-arrow__tail,
+a:focus-visible .signet-arrow__tail,
+.signet-arrow:hover .signet-arrow__tail {
+  left: 67%;
+  width: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .signet-arrow__tail {
+    transition: none;
+  }
+}

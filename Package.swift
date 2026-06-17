@@ -22,9 +22,18 @@ let package = Package(
         .library(name: "Signet", targets: ["Signet"]),
     ],
     targets: [
-        .target(name: "Signet"),
+        // Monorepo: the SwiftUI package's sources live under packages/native/
+        // (the web design package is packages/web/). Package.swift must stay at
+        // the repo root — SPM resolves a git-url dependency's manifest only at
+        // the root — so the targets point into packages/native/Sources. The
+        // product/module name stays `Signet`, so consuming apps are untouched.
+        .target(name: "Signet", path: "packages/native/Sources/Signet"),
         // Dependency-free smoke runner (`swift run SignetTests`) — the family
         // convention, since Command Line Tools ship no XCTest/swift-testing.
-        .executableTarget(name: "SignetTests", dependencies: ["Signet"]),
+        .executableTarget(
+            name: "SignetTests",
+            dependencies: ["Signet"],
+            path: "packages/native/Sources/SignetTests"
+        ),
     ]
 )

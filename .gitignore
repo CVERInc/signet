@@ -3,3 +3,7 @@
 *.xcodeproj
 DerivedData/
 .DS_Store
+
+# web package (packages/web)
+node_modules/
+*.tgz
