@@ -1,13 +1,13 @@
 <script>
-  /* @cver/signet — directional arrow (Svelte).
+  /* @cvernet/signet — directional arrow (Svelte).
    *
    * Same element as the Astro version. Rest is a full arrow; on hover of the
    * nearest `.group` ancestor (or the enclosing anchor) the tail retracts into
    * the chevron. Rotate per direction. Pure CSS + SVG, currentColor, no JS.
    *
    * Import the stylesheet once in your app, then use the component:
-   *   import '@cver/signet/arrow.css';
-   *   import Arrow from '@cver/signet/Arrow.svelte';
+   *   import '@cvernet/signet/arrow.css';
+   *   import Arrow from '@cvernet/signet/Arrow.svelte';
    *   <a class="group">Read more <Arrow /></a>
    *   <a class="group">Back <Arrow direction="left" /></a>
    *   <a href="https://…" class="group">GitHub <Arrow direction="up-right" /></a>

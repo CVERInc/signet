@@ -1,4 +1,4 @@
-/* @cver/signet — directional arrow with a tail-retract hover morph.
+/* @cvernet/signet — directional arrow with a tail-retract hover morph.
  *
  * At REST the element is a full arrow (chevron + tail). On hover of the
  * nearest `.group` ancestor — or the enclosing `<a>` — the tail retracts
@@ -14,7 +14,7 @@
  * `--signet-arrow-w` to the rendered size (the components do this for you).
  *
  * Pure CSS + SVG. currentColor throughout. No JS, SSR-friendly. Import once:
- *   import '@cver/signet/arrow.css';
+ *   import '@cvernet/signet/arrow.css';
  */
 
 .signet-arrow {

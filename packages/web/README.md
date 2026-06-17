@@ -1,4 +1,4 @@
-# @cver/signet
+# @cvernet/signet
 
 The **web** side of the [Signet](../../README.md) design seal — CVER's shared
 web design elements, so every CVER website renders as the same family the way
@@ -11,7 +11,7 @@ the native apps do. Framework-agnostic CSS with thin Astro and Svelte wrappers.
 ## Install
 
 ```bash
-npm install @cver/signet
+npm install @cvernet/signet
 ```
 
 ## Arrow
@@ -36,14 +36,14 @@ Import the stylesheet **once** in your app, then use the component for your
 framework:
 
 ```ts
-import '@cver/signet/arrow.css';
+import '@cvernet/signet/arrow.css';
 ```
 
 **Astro** (cver.net):
 
 ```astro
 ---
-import Arrow from '@cver/signet/Arrow.astro';
+import Arrow from '@cvernet/signet/Arrow.astro';
 ---
 <a class="group">Read more <Arrow /></a>
 <a class="group">Back <Arrow direction="left" /></a>
@@ -56,7 +56,7 @@ import Arrow from '@cver/signet/Arrow.astro';
 
 ```svelte
 <script>
-  import Arrow from '@cver/signet/Arrow.svelte';
+  import Arrow from '@cvernet/signet/Arrow.svelte';
 </script>
 <a class="group">Read more <Arrow /></a>
 <a class="group">Back <Arrow direction="left" /></a>
@@ -72,3 +72,47 @@ The hover morph fires from any ancestor carrying the Tailwind-style `group`
 class (cards, tertiary buttons) **or** the enclosing anchor — so plain links and
 primary/secondary buttons animate too, no `group` needed. `prefers-reduced-motion`
 disables the transition.
+
+## Locale banner
+
+A top strip that offers a visitor their own language when it differs from the
+page's — detect on `navigator.languages`, suggest, remember the dismissal. CSS +
+a tiny vanilla controller + Astro/Svelte wrappers. The cver.net-specific bits
+are parameterised, so any CVER site can use it.
+
+```ts
+import '@cvernet/signet/locale-banner.css';
+```
+
+```astro
+---
+import LocaleBanner from '@cvernet/signet/LocaleBanner.astro';
+const PREFIXES = { 'en-us': ['en'], 'ja-jp': ['ja'], 'ko-kr': ['ko'], 'zh-tw': ['zh'] };
+---
+<LocaleBanner
+  current={locale}
+  defaultLocale="en-us"
+  excludePath="/language"
+  class="bleedblend-top bleedblend-push"
+  options={localesOnThisPage.map((l) => ({
+    id: l,
+    match: PREFIXES[l],
+    prompt: dict(l).LOCALE_BANNER_PROMPT,
+    continue: dict(l).LOCALE_BANNER_CONTINUE,
+    dismiss: dict(l).LOCALE_BANNER_DISMISS,
+  }))}
+/>
+```
+
+Svelte is the same, from `@cvernet/signet/LocaleBanner.svelte`.
+
+Props: `current` (page locale id), `defaultLocale` (the locale at the bare path,
+no prefix), `options` (one per locale that has *this* page — `{ id, match: string[],
+prompt, continue, dismiss? }`, each addressed in the language it suggests),
+`excludePath?` (regex string, e.g. the language picker page), `storageKey?`,
+`ariaLabel?`, `class?` (e.g. bleedblend's `bleedblend-top bleedblend-push` so it
+tints the chrome and pushes content), `id?`.
+
+The href to switch is built client-side (strip the current locale prefix off the
+URL, add the suggested one) so it stays correct across view transitions. SSR-safe;
+add `.bleedblend-push` if you want it to push content instead of overlaying it.

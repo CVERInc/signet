@@ -62,7 +62,7 @@ convention — so improvements land everywhere on the next build.
 > manifest only at the root. The product/module name is still `Signet`, so the
 > `.package(url:)` above is unchanged; consuming apps don't move.
 
-## Web side — `@cver/signet`
+## Web side — `@cvernet/signet`
 
 The same seal, on the web. CVER's websites (cver.net, feelreef, …) drift on the
 *same* design language the native apps do, so the web shares one source of truth
@@ -70,12 +70,12 @@ too — the npm package in [`packages/web`](packages/web). Framework-agnostic CS
 with thin Astro and Svelte wrappers.
 
 ```bash
-npm install @cver/signet
+npm install @cvernet/signet
 ```
 
 ```ts
-import '@cver/signet/arrow.css';
-import Arrow from '@cver/signet/Arrow.astro';   // or .../Arrow.svelte
+import '@cvernet/signet/arrow.css';
+import Arrow from '@cvernet/signet/Arrow.astro';   // or .../Arrow.svelte
 ```
 
 See [`packages/web/README.md`](packages/web/README.md). First element: the

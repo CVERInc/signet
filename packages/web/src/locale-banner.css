@@ -1,0 +1,114 @@
+/* @cvernet/signet — locale-suggestion banner.
+ *
+ * A top strip that offers a visitor their own language when it differs from the
+ * page's. Visual only here; behaviour is in locale-banner.js (detect / show /
+ * dismiss), and the markup + per-locale copy come from the framework wrappers
+ * (LocaleBanner.astro / .svelte).
+ *
+ * Colours read the CVER palette tokens when the host defines them, and fall
+ * back to the canonical CVER teal so the banner is self-contained:
+ *   --color-primary        #aceace   (mint, light-mode bg)
+ *   --color-primary-deeper #084a4c   (deep teal, text / dark-mode bg / pill)
+ *   --color-primary-light  #4fd1ca
+ *   --color-ink            #f5fbfa
+ *
+ * Positioning (fixed/sticky top, safe-area) is intentionally NOT set here — add
+ * bleedblend's `.bleedblend-top` (overlay) or `.bleedblend-top.bleedblend-push`
+ * (reserve space) via the wrapper's `class` prop if you want chrome tinting.
+ */
+
+.locale-banner {
+  background: var(--color-primary, #aceace);
+  color: var(--color-primary-deeper, #084a4c);
+  border-bottom: 1px solid rgba(8, 74, 76, 0.18);
+  font-size: 0.875rem;
+}
+
+.locale-banner[hidden] {
+  display: none;
+}
+
+/* Centred: question + the two choices read as one row on wide screens and wrap
+   to two centred lines on narrow ones (flex-wrap + justify-center, no media
+   query). The two buttons stay glued in __actions so they wrap as a pair. */
+.locale-banner__inner {
+  max-width: 72rem;
+  margin: 0 auto;
+  padding: 0.75rem 1.25rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem 1rem;
+}
+
+.locale-banner__msg {
+  margin: 0;
+  line-height: 1.45;
+  font-weight: 400;
+  text-align: center;
+}
+
+.locale-banner__actions {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+/* A worded "no thanks" instead of a bare × — the quiet secondary action. */
+.locale-banner__decline {
+  border: none;
+  background: transparent;
+  color: rgba(8, 74, 76, 0.7);
+  font: inherit;
+  font-weight: 500;
+  padding: 0.4rem 0.85rem;
+  border-radius: 9999px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.locale-banner__decline:hover {
+  color: var(--color-primary-deeper, #084a4c);
+  background: rgba(8, 74, 76, 0.08);
+}
+
+/* Primary action — the filled pill. */
+.locale-banner__continue {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.4rem 1rem;
+  border-radius: 9999px;
+  background: var(--color-primary-deeper, #084a4c);
+  color: var(--color-ink, #f5fbfa);
+  font-weight: 600;
+  font-size: 0.8125rem;
+  white-space: nowrap;
+  text-decoration: none;
+}
+
+.locale-banner__continue:hover {
+  background: #052829;
+}
+
+@media (prefers-color-scheme: dark) {
+  .locale-banner {
+    background: var(--color-primary-deeper, #084a4c);
+    color: var(--color-ink, #f5fbfa);
+    border-bottom: 1px solid rgba(245, 251, 250, 0.14);
+  }
+  .locale-banner__decline {
+    color: rgba(245, 251, 250, 0.7);
+  }
+  .locale-banner__decline:hover {
+    color: var(--color-ink, #f5fbfa);
+    background: rgba(245, 251, 250, 0.1);
+  }
+  .locale-banner__continue {
+    background: var(--color-primary, #aceace);
+    color: var(--color-primary-deeper, #084a4c);
+  }
+  .locale-banner__continue:hover {
+    background: var(--color-primary-light, #4fd1ca);
+  }
+}

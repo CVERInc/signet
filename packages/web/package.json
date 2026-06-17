@@ -1,6 +1,6 @@
 {
-  "name": "@cver/signet",
-  "version": "0.1.0",
+  "name": "@cvernet/signet",
+  "version": "0.2.0",
   "description": "The web side of the Signet design seal — CVER's shared web design elements. Framework-agnostic CSS with Astro and Svelte components.",
   "license": "MIT",
   "type": "module",
@@ -16,12 +16,18 @@
   "exports": {
     "./arrow.css": "./src/arrow.css",
     "./Arrow.astro": "./src/Arrow.astro",
-    "./Arrow.svelte": "./src/Arrow.svelte"
+    "./Arrow.svelte": "./src/Arrow.svelte",
+    "./locale-banner.css": "./src/locale-banner.css",
+    "./locale-banner.js": "./src/locale-banner.js",
+    "./LocaleBanner.astro": "./src/LocaleBanner.astro",
+    "./LocaleBanner.svelte": "./src/LocaleBanner.svelte"
   },
   "keywords": [
     "cver",
     "design-system",
     "arrow",
+    "locale-banner",
+    "i18n",
     "astro",
     "svelte",
     "css"

@@ -1,0 +1,73 @@
+---
+/* @cvernet/signet — locale-suggestion banner (Astro).
+ *
+ * Renders the banner markup + its config; the behaviour ships via the bundled
+ * <script> below (no separate import needed). Import the stylesheet once:
+ *   import '@cvernet/signet/locale-banner.css';
+ *
+ * Usage:
+ *   <LocaleBanner
+ *     current={locale}
+ *     defaultLocale="en-us"
+ *     class="bleedblend-top bleedblend-push"   // optional: bleedblend chrome tinting
+ *     excludePath="/language"
+ *     options={localesOnThisPage.map((l) => ({
+ *       id: l,
+ *       match: PREFIXES[l],                     // e.g. ['zh'] for zh-tw
+ *       prompt: t(l, 'LOCALE_BANNER_PROMPT'),
+ *       continue: t(l, 'LOCALE_BANNER_CONTINUE'),
+ *       dismiss: t(l, 'LOCALE_BANNER_DISMISS'),
+ *     }))}
+ *   />
+ */
+interface Option {
+  id: string;
+  match: string[];
+  prompt: string;
+  continue: string;
+  dismiss?: string;
+}
+interface Props {
+  current: string;
+  defaultLocale: string;
+  options: Option[];
+  ariaLabel?: string;
+  storageKey?: string;
+  excludePath?: string;
+  class?: string;
+  id?: string;
+}
+const {
+  current,
+  defaultLocale,
+  options,
+  ariaLabel = 'Language',
+  storageKey,
+  excludePath,
+  class: extraClass = '',
+  id = 'signet-locale-banner',
+} = Astro.props;
+const config = { current, defaultLocale, options, storageKey, excludePath };
+---
+
+<div
+  id={id}
+  class:list={['locale-banner', extraClass]}
+  hidden
+  role="region"
+  aria-label={ariaLabel}
+  data-signet-locale-banner
+  data-config={JSON.stringify(config)}
+>
+  <div class="locale-banner__inner">
+    <span class="locale-banner__msg" data-banner-message></span>
+    <span class="locale-banner__actions">
+      <button type="button" class="locale-banner__decline" data-banner-dismiss></button>
+      <a href="#" class="locale-banner__continue" data-banner-continue></a>
+    </span>
+  </div>
+</div>
+
+<script>
+  import '@cvernet/signet/locale-banner.js';
+</script>
