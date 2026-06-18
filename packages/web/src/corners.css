@@ -1,0 +1,27 @@
+/* @cvernet/signet — CVER family corner shape (squircle).
+ *
+ * Apple-style continuous-curvature corners via CSS `corner-shape: squircle`
+ * (a real superellipse, not a circular arc), sized by each element's own
+ * `border-radius`. Browsers without `corner-shape` gracefully fall back to the
+ * normal rounded arc — pure progressive enhancement, no @supports needed.
+ *
+ * Extracted from liquidframe; this is the CANONICAL CVER-family corner rule.
+ * Import once at the app root and every page inherits the family look:
+ *     import '@cvernet/signet/corners.css';
+ *
+ * Covers every CVER project regardless of how the radius is applied:
+ *   - Tailwind `.rounded-*` utilities (cver.net)
+ *   - inline / bespoke `border-radius` (feelreef)
+ * Any element that already has a radius becomes a squircle; radius:0 is a no-op.
+ */
+
+:where(*) {
+  corner-shape: squircle;
+}
+
+/* Keep genuinely circular elements circular — squircling a 50% radius (avatars,
+   dots, circular badges) reads wrong. Opt an element back out with
+   `corner-shape: round`. */
+:where(.rounded-full, [style*="border-radius:50%"], [style*="border-radius: 50%"]) {
+  corner-shape: round;
+}
