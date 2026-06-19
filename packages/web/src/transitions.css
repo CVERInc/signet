@@ -1,0 +1,34 @@
+/* @cvernet/signet — View Transitions.
+ *
+ * The CVER-family default page transition: a soft cross-fade morph between
+ * pages. Drop this stylesheet in once (it styles the ::view-transition
+ * pseudo-elements), then trigger it per framework:
+ *
+ *   SvelteKit:
+ *     import { onNavigate } from '$app/navigation';
+ *     import { viewTransition } from '@cvernet/signet/view-transitions';
+ *     import '@cvernet/signet/transitions.css';
+ *     onNavigate(viewTransition);
+ *
+ *   Astro:
+ *     <ClientRouter /> from 'astro:transitions' drives the same
+ *     ::view-transition pseudo-elements — just add this stylesheet for the
+ *     CVER-family timing.
+ *
+ * Progressive enhancement (see the CVER "best tech as garnish, not foundation"
+ * line): browsers without the View Transitions API just navigate instantly —
+ * nothing breaks. Respects prefers-reduced-motion.
+ */
+@media not (prefers-reduced-motion: reduce) {
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation-duration: 0.18s;
+    animation-timing-function: ease-out;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation: none;
+  }
+}

@@ -1,6 +1,6 @@
 {
   "name": "@cvernet/signet",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "description": "The web side of the Signet design seal — CVER's shared web design elements. Framework-agnostic CSS with Astro and Svelte components.",
   "license": "MIT",
   "type": "module",
@@ -15,6 +15,8 @@
   ],
   "exports": {
     "./corners.css": "./src/corners.css",
+    "./transitions.css": "./src/transitions.css",
+    "./view-transitions": "./src/view-transitions.js",
     "./arrow.css": "./src/arrow.css",
     "./Arrow.astro": "./src/Arrow.astro",
     "./Arrow.svelte": "./src/Arrow.svelte",
