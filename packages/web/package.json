@@ -1,6 +1,6 @@
 {
   "name": "@cvernet/signet",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "description": "The web side of the Signet design seal — CVER's shared web design elements. Framework-agnostic CSS with Astro and Svelte components.",
   "license": "MIT",
   "type": "module",
@@ -16,14 +16,28 @@
   "exports": {
     "./corners.css": "./src/corners.css",
     "./transitions.css": "./src/transitions.css",
-    "./view-transitions": "./src/view-transitions.js",
+    "./view-transitions": {
+      "types": "./src/view-transitions.d.ts",
+      "default": "./src/view-transitions.js"
+    },
     "./arrow.css": "./src/arrow.css",
     "./Arrow.astro": "./src/Arrow.astro",
-    "./Arrow.svelte": "./src/Arrow.svelte",
+    "./Arrow.svelte": {
+      "types": "./src/Arrow.svelte.d.ts",
+      "svelte": "./src/Arrow.svelte",
+      "default": "./src/Arrow.svelte"
+    },
     "./locale-banner.css": "./src/locale-banner.css",
-    "./locale-banner.js": "./src/locale-banner.js",
+    "./locale-banner.js": {
+      "types": "./src/locale-banner.d.ts",
+      "default": "./src/locale-banner.js"
+    },
     "./LocaleBanner.astro": "./src/LocaleBanner.astro",
-    "./LocaleBanner.svelte": "./src/LocaleBanner.svelte"
+    "./LocaleBanner.svelte": {
+      "types": "./src/LocaleBanner.svelte.d.ts",
+      "svelte": "./src/LocaleBanner.svelte",
+      "default": "./src/LocaleBanner.svelte"
+    }
   },
   "keywords": [
     "cver",
