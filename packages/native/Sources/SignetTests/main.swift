@@ -91,5 +91,26 @@ check("origin: NaN windowHeight → nil",
       SignetWindowGeometry.restoredOrigin(from: ["x": 100.0, "topY": 500.0],
                                           windowHeight: CGFloat.nan) == nil)
 
+// App-icon pipeline: a solid foreground → squircle master → PNG + .icns on disk.
+do {
+    let fg = NSImage(size: NSSize(width: 256, height: 256))
+    fg.lockFocus(); NSColor.systemTeal.setFill(); NSRect(x: 0, y: 0, width: 256, height: 256).fill(); fg.unlockFocus()
+    let master = CVERAppIcon.compose(foreground: fg, canvas: 256, contentInset: 18)
+    check("appicon: compose master is 256px", Int(master.size.width) == 256)
+    let dir = FileManager.default.temporaryDirectory.appendingPathComponent("signet-icon-smoke-\(UUID().uuidString)")
+    try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+    defer { try? FileManager.default.removeItem(at: dir) }
+    let png = dir.appendingPathComponent("icon.png")
+    let icns = dir.appendingPathComponent("icon.icns")
+    try CVERAppIcon.writePNG(master, to: png)
+    try CVERAppIcon.writeICNS(master: master, to: icns)
+    let pngSize = (try? FileManager.default.attributesOfItem(atPath: png.path))?[.size] as? Int ?? 0
+    let icnsSize = (try? FileManager.default.attributesOfItem(atPath: icns.path))?[.size] as? Int ?? 0
+    check("appicon: PNG written non-empty", pngSize > 0)
+    check("appicon: .icns written non-empty", icnsSize > 0)
+} catch {
+    check("appicon: pipeline ran without throwing", false)
+}
+
 print(failures == 0 ? "\nAll Signet smoke checks passed." : "\n\(failures) check(s) FAILED.")
 exit(failures == 0 ? 0 : 1)
