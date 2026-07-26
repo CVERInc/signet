@@ -31,7 +31,7 @@ can walk all three in one sitting and meet three languages.
 | **Machine output** | — | `--json` | — |
 | **stdout / stderr split** | data → stdout, notice+heartbeat → stderr | not separated | not audited |
 
-### Header signature — already identical, and it stops at line 4
+### Header signature — two of three, and it stops at line 4
 
 ```
 sheersweep  — the Mac cleaner you can read.
@@ -43,9 +43,24 @@ sheerstatus — the zero-daemon hardware & pre-upgrade auditor you can read.
               https://oss.cver.net/sheerstatus  ·  MIT © CVER Inc.
 ```
 
-Same three-line mould, same `·` separator, same *"you can read"* claim, same URL
-and licence line. The seal already exists — it just never propagated past the
-header into the output.
+Same three-line mould, same `·`, same *"you can read"*, same URL and licence
+line. It just never propagated past the header into the output.
+
+**clikae — the oldest of the three — never got the mould:**
+
+```
+clikae      - CLI profile switcher  (kirikae, "switch")
+              https://github.com/CVERInc/clikae
+              MIT License
+```
+
+Plain hyphen instead of the em dash, no *"you can read"* claim, `github.com`
+instead of `oss.cver.net`, `MIT License` instead of `MIT © CVER Inc.`
+
+> A first draft of `SPEC.md` claimed **all three** tools shared the mould. Two
+> had been checked. The third was asserted. That is the same failure this whole
+> audit exists to prevent, committed inside the audit — and it was the lint that
+> caught it, on its first real run.
 
 Note the irony in row 2 of the table: **sheerstatus's header uses `·` while its
 own output uses `•`.** The sealed part is consistent; the improvised part drifted.
