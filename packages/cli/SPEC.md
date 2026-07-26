@@ -135,6 +135,13 @@ limit is a semantic forcing function.**
 the column. The answer isn't a shorter synonym — it's that the rule tells you
 when something was never a badge.
 
+> **TBD — the set may not be closed yet.** It was derived from sheersweep, which
+> *acts*. sheerstatus *measures*, and runs a three-rung severity ladder:
+> `[PASS] → [WARN] → [CRIT]`. `CRIT` has no home here — `WARN` would flatten the
+> ladder, and `FAIL` means "the operation didn't succeed", not "the reading is
+> bad". Either the set grows a rung or the ladder loses one; **do not decide this
+> by writing code.** It blocks converting sheerstatus's badges.
+
 ### Structure — partly open
 
 | role | rendering | status |

@@ -62,6 +62,24 @@ instead of `oss.cver.net`, `MIT License` instead of `MIT © CVER Inc.`
 > audit exists to prevent, committed inside the audit — and it was the lint that
 > caught it, on its first real run.
 
+**And the URL in the seal is currently a promise two of the three break.**
+Checked 2026-07-26:
+
+```
+https://oss.cver.net/clikae       200  → redirects to clikae.cver.net (a real page)
+https://oss.cver.net/sheersweep   404
+https://oss.cver.net/sheerstatus  404
+```
+
+`oss.cver.net` lists bleedblend, demodeck, liquidframe, motifmint and seikyusho
+— neither sheer tool has a page there. So the one tool **without** the seal is
+the only one whose URL resolves, and the two that carry it print a dead link in
+their first four lines.
+
+The lint checks the URL's *shape*, not that it answers; a network call has no
+place in a static check. **TBD — create the pages, or change the line?** Not
+decided here, and it isn't a wording problem: it is a live claim that isn't true.
+
 Note the irony in row 2 of the table: **sheerstatus's header uses `·` while its
 own output uses `•`.** The sealed part is consistent; the improvised part drifted.
 
@@ -182,9 +200,19 @@ with **both** `✅` (no leftovers / no orphaned dependencies) and `✨` (nothing
 eligible to reclaim). Found only on a second pass — the first inventory missed
 `✨` entirely, which is the argument for a lint over an eyeball.
 
-Note the overload found in sheersweep: `⚠️` currently carries **both** "needs
-your judgement" and "the operation failed". The badge set forces those apart —
-the width constraint is a semantic forcing function.
+Two overloads found in sheersweep, both invisible until something forced a
+choice:
+
+- `⚠️` carries **both** "needs your judgement" and "the operation failed"
+- `🔴` carries **three** things: a protective refusal (*"refusing: {app} is on
+  the sealed system volume"*, *"installed formulae depend on it"* → that is
+  `HELD`, not a failure), a partial failure (*"only 3 of 5 items could be
+  moved"* → `FAIL`), and **"this tool doesn't run on this platform"**, which is
+  neither.
+
+The badge set forces these apart — the width limit is a semantic forcing
+function. But the third `🔴` case has no home in the five, so
+**converting sheersweep's status glyphs is blocked** alongside sheerstatus's.
 
 Interactive — presentation only in v1:
 
@@ -200,6 +228,11 @@ Interactive — presentation only in v1:
 - **Do horizontal rules retire family-wide?** (sheersweep 0, sheerstatus 3, clikae 21)
 - **Is `[x]` the family selection mark?**
 - **Is "level with honest unknown" a family role?** (finding 2)
+- **Does the badge set need a third severity rung?** sheerstatus runs
+  `[PASS] → [WARN] → [CRIT]`; the five-badge set has one rung of concern. Found
+  by the lint on its first real run — the set was derived from the tool that
+  *acts*, and the tool that *measures* needs a ladder. **This blocks converting
+  sheerstatus's badges.**
 - **A repeatable method for the system-dictionary check** (finding 5)
 - **When sheerstatus's 9-locale tests get rewritten** for the do-not-translate ruling
 
