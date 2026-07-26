@@ -334,6 +334,21 @@ Progress notices, heartbeats and "measuring…" lines go to stderr; the report
 goes to stdout. A person sees both; a pipe gets only the data. This is testable,
 so the lint can hold it.
 
+**Narration takes the same badges as a report.** The stream is what makes a line
+narration — not a second vocabulary. clikae had run `[OK] [INFO] [WARN] [ERR]`
+for years beside reports saying `[ PASS ] [ WARN ]`, so a person met two spellings
+of one meaning in a single session with nothing to explain the difference.
+
+And the badge set does the same work here that it does in a report: `[OK]` was
+carrying both *I did something* and *I checked and there was nothing to do*.
+Sorting 63 call sites by the usual question — did this change the state? — split
+them 54 to 9 with nothing left over.
+
+A log level with no state behind it takes **no badge**. `[INFO]` isn't a state,
+it's the guidance that follows one ("No alias added. Run `clikae alias …`"), so
+it indents under the badge column and claims nothing. Same instinct as green
+needing no words: a mark earns its place by doing a job no other mark does.
+
 ---
 
 ## Voice

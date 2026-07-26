@@ -291,26 +291,52 @@ amplifies but never carries, `·` is the one bullet, `▸` is the group header,
 rules retire, `[x]` is the selection mark, `● / ○` stays (clikae turned out to
 be the reference implementation, not the exception), and `CRIT` joined the set.
 
-What is genuinely still open:
+Closed on 2026-07-27, each one worth the sentence it took:
 
-- **clikae's log-level prefixes.** `[OK] [INFO] [WARN] [ERR]` across **585 call
-  sites** — a role the spec doesn't cover. They are narration on stderr, not
-  state on a report row, but a reader meets `[WARN]` and `[ WARN ]` in one
-  session and has no way to know why they differ. Mapping them isn't mechanical:
-  `log_ok` is used both for *an action completed* and for *a check found
-  nothing*, which is the exact PASS/DONE overload the badge set exists to force
-  apart. **Do not decide this by writing code** — it is the narration layer of
-  the tool its author uses every day.
-- **`sheersweep` prints a count in a size column.** `·        1  (present)` for
-  local snapshots. Ruler 8 says when a row can't fill a column, suspect the row.
-- **sheerstatus's Recommendation section is 4-locale, not 9** — es/de/fr/pt fall
-  through to English. sheersweep has a CI gate that extracts every key × every
-  locale; sheerstatus has none, which is why the gap survived unnoticed.
-- **sheerstatus's own `test.sh`** prints `[PASS]` unpadded under `====` rules.
-  Developer-facing, not shipped, and the lint isn't pointed at it.
+- **clikae's log prefixes.** `[OK]` was carrying the PASS/DONE overload the badge
+  set exists to force apart. Sorting 63 call sites by *did this change the
+  state?* split them 54 / 9. `[INFO]` lost its badge — it isn't a state, it's
+  the guidance that follows one. **Narration takes the same badges as a report**;
+  the stream it goes to is what makes it narration, not a second vocabulary.
+- **clikae's section headers were a colour.** Found while doing the above:
+  `  Tanks` was bright cyan and nothing else, so a pipe lost the header entirely.
+  Marked in both render paths.
+- **The snapshot count in a size column** → an em dash, with the count moved into
+  the label. A snapshot's size genuinely cannot be measured, and saying so is
+  the same move as "unreadable even to root".
+- **sheerstatus was 4-locale below the nouns** — and so was its verdict section,
+  and `zh-Hans` was reading Traditional throughout. Fixed, and the gate that
+  should have caught it was rebuilt (see below).
+- **Both harnesses** now speak the family's language and are linted.
+
+Still open:
+
 - **A repeatable method for the system-dictionary check** (finding 5)
 - **`https://oss.cver.net/sheersweep` and `/sheerstatus` still 404** — a live
-  tool printing a dead link in its first four lines.
+  tool printing a dead link in its first four lines. sheerstatus is at least a
+  real repo now (`CVERInc/sheerstatus`, public 2026-07-27); the pages are not
+  built. Copy and distribution are the maintainer's craft, so this waits for him.
+- **clikae's inline bold.** 62 of its 63 bold sites are emphasis inside a row,
+  not headers. Whether emphasis needs a family rule at all is undecided.
+
+### The gate that could not see what it was for
+
+worth recording on its own, because it is the shape of the whole exercise:
+
+sheersweep's i18n check asked *does `t <key>` return something in every locale?*
+A key missing a locale falls through to `*)` and returns English — which is very
+much something. It could only ever catch a typo'd key name, while its comment
+claimed it caught silent fallbacks. **It passed for months because the codebase
+happened to be clean, not because the check worked.**
+
+Found by writing the same weak check for sheerstatus and watching it bless a
+four-locale section as nine. The replacement reads the shape rather than the
+value: a key whose body opens `case "$SS_LANG"` is claiming per-language text,
+so every locale must appear as a branch label. That forced `en-US|*)` across both
+tools — one label meaning both "English" and "any language we haven't heard of"
+is exactly what made the gap invisible.
+
+*A check you have never seen fail is a check you have never seen.*
 
 ---
 
