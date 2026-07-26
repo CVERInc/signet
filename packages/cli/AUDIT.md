@@ -76,6 +76,14 @@ https://oss.cver.net/sheerstatus  404
 the only one whose URL resolves, and the two that carry it print a dead link in
 their first four lines.
 
+The two 404s are not the same kind of problem:
+
+| | published? | the claim |
+|---|---|---|
+| sheersweep | yes, on GitHub | a **live tool printing a dead link** |
+| sheerstatus | **no git remote at all** — local only | aspirational; the page can't exist yet |
+| clikae | yes | true |
+
 The lint checks the URL's *shape*, not that it answers; a network call has no
 place in a static check. **TBD — create the pages, or change the line?** Not
 decided here, and it isn't a wording problem: it is a live claim that isn't true.
