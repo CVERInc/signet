@@ -219,8 +219,13 @@ choice:
   neither.
 
 The badge set forces these apart — the width limit is a semantic forcing
-function. But the third `🔴` case has no home in the five, so
-**converting sheersweep's status glyphs is blocked** alongside sheerstatus's.
+function.
+
+> **This first read blocked the work, and was wrong.** The third `🔴` case —
+> *"sheersweep is macOS-only"* — was called homeless, but `[ FAIL ]` means "this
+> didn't succeed", and a run on the wrong platform is exactly that. All 25 keys
+> mapped onto the five with no new decision needed; sheersweep converted the same
+> day. Only sheerstatus's third severity rung is genuinely open.
 
 Interactive — presentation only in v1:
 
