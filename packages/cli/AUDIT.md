@@ -1,0 +1,194 @@
+# Drift audit — what the three CLIs actually do today
+
+**Read-only.** This file records what is, not what should be. Every number was
+grepped or run on 2026-07-26; nothing here is from memory. Decisions live in
+`SPEC.md`; unresolved questions are marked **TBD** and must not be settled by
+whoever reads this — they go back to chodaict.
+
+This is the CLI counterpart of the observation that created Signet in June:
+*every app had independently grown the same color-role taxonomy and just drifted
+on the hex values.* Same disease, third surface — the roles below are identical
+across all three tools; only the characters drifted.
+
+The tools point at each other (`sheerstatus → sheersweep → clikae`), so a person
+can walk all three in one sitting and meet three languages.
+
+---
+
+## The table
+
+| Role | sheersweep | sheerstatus | clikae |
+|---|---|---|---|
+| **Group header** | `▸ Title` | bare text after a blank line, under a `----` rule | ANSI **bold** text, 2-space indent, no glyph |
+| **List item** | `·` | `•` | **both** — `·` ×119, `•` ×61 |
+| **Next step** | `→` ×98 | **none (0)** — advice is prose under "Recommendation" | `→` ×150 |
+| **Rebuild hint** | `↺ cd … && npm install` | — | — |
+| **Status** | emoji: `✅ 🔴 ⚠️ ❌ 🔒 ✨` | `[PASS] [WARN] [CRIT]`, **translated** in ja/zh/ko | ANSI colour + `● ○` + `yes/no/-` in tables |
+| **Level indicator** | — | — | `●` (green/yellow/red) / `○` = *no reading* |
+| **Selection** | numbered picker (`64) com.spotify…`) | — (non-interactive) | `[x]` / `[ ]` checkboxes ×3 |
+| **Horizontal rules** | **0** (33 retired 2026-07-26) | 3 | 21 (`─`) |
+| **ANSI colour** | **0** | **0** | **67** escape sites, ~196 colour-var uses |
+| **Machine output** | — | `--json` | — |
+| **stdout / stderr split** | data → stdout, notice+heartbeat → stderr | not separated | not audited |
+
+### Header signature — already identical, and it stops at line 4
+
+```
+sheersweep  — the Mac cleaner you can read.
+              Open source · dry-run first · hard never-touch list · sweeps every account.
+              https://oss.cver.net/sheersweep  ·  MIT © CVER Inc.
+
+sheerstatus — the zero-daemon hardware & pre-upgrade auditor you can read.
+              Open source · macOS & Linux · hard-data verdict · single-file Bash.
+              https://oss.cver.net/sheerstatus  ·  MIT © CVER Inc.
+```
+
+Same three-line mould, same `·` separator, same *"you can read"* claim, same URL
+and licence line. The seal already exists — it just never propagated past the
+header into the output.
+
+Note the irony in row 2 of the table: **sheerstatus's header uses `·` while its
+own output uses `•`.** The sealed part is consistent; the improvised part drifted.
+
+---
+
+## Findings that changed the plan
+
+### 1. Colour is the deepest drift, and it was missing from the plan
+
+`sheersweep 0 · sheerstatus 0 · clikae 67`.
+
+> **If you re-run this, mind the pattern.** A first pass that included a bare
+> `tput` reported 11 and 5 for the two colourless tools — every hit was the word
+> **out·put**, which contains `tput`. The wider net was *worse* than the narrow
+> one. Use `\\033[` / `\\x1b[` / `\\e[` / `tput` with a word boundary, and always
+> keep a control that **must** be non-zero (clikae) so a silently-broken pattern
+> can't read as "all clean".
+
+Two tools are entirely colourless; one is heavily coloured. This is a bigger
+split than any glyph, and it bears directly on the status decision: the original
+argument for emoji was *"colour conveys severity faster than text"* — but
+sheersweep has no colour at all, so its emoji were **standing in for** colour.
+clikae has the real thing.
+
+Three different answers to "how do you show severity":
+
+| | mechanism |
+|---|---|
+| sheersweep | colour-by-glyph (emoji) |
+| sheerstatus | text badge, no colour |
+| clikae | real ANSI colour |
+
+**TBD — does the CLI signet use colour at all?** Not decided. Arguments exist on
+both sides (speed of recognition vs. piping to files, CI logs, `NO_COLOR`,
+terminal themes, colour-blindness). This is the single largest open question and
+it outranks `·` vs `•`.
+
+### 2. A sixth role the five badges don't cover
+
+clikae's `●` / `○` is not PASS/WARN/FAIL. It is a **level indicator with an
+honest unknown**:
+
+- `●` — a reading exists; its *colour* carries the level
+- `○` — **no reading** (from the source: *"an honest ○ 'no reading'"*)
+
+That "we don't know, and we say so" state is the same instinct as sheersweep's
+*"unreadable even to root — no tool can total it"*. It is a real role, it exists
+in the family, and the five-badge set has no slot for it.
+
+**TBD — is "level with an honest unknown" a family role?** If yes it needs a
+rendering; if no, clikae needs a different way to say it.
+
+### 3. sheerstatus has no next-step arrows at all
+
+`→ ×0`. Its advice is prose:
+
+```
+Recommendation
+  • If lag persists, consider upgrading RAM and storage on your next machine.
+  • Consider using sheersweep to free up disk space.
+```
+
+Both other tools point with `→` (98 and 150 uses). This is not a glyph choice —
+it is a missing role. Aligning sheerstatus means *adding* pointers, not
+translating them.
+
+### 4. clikae is internally inconsistent — and closer to sheersweep than sheerstatus is
+
+`·` ×119 and `•` ×61 in the same codebase, both in output paths
+(`lib/core/tui.sh`, `lib/commands/*`). So the `·` vs `•` question is not only
+between tools; it is inside one.
+
+But note the direction: clikae's dominant separator (`·`) and pointer (`→`)
+already match sheersweep. The outlier on those two rows is sheerstatus.
+
+### 5. The system-dictionary audit item partly evaporated
+
+The audit was meant to check each status word against the OS's own strings —
+prompted by sheerstatus's Japanese `[混雑]` (*congested*), where macOS says
+「メモリプレッシャー」 for memory pressure.
+
+The **do-not-translate ruling makes those four words moot** — `[混雑] [吃緊]
+[不足] [赤字] [正常] [良好] [정상] [주의] [경고]` are all being removed.
+
+The rule still applies to the *nouns* each tool translates (Storage / Battery /
+Memory → ストレージ / バッテリー / メモリ, which do match macOS). **TBD — a
+method for checking a term against the OS's own language pack**, so this is an
+audit that can be re-run rather than a one-time opinion.
+
+---
+
+## Roles inventory (what a spec has to cover)
+
+Structural — every tool has all of these, whatever it calls them:
+
+1. Banner / identity line
+2. Group header
+3. List item
+4. Next step (pointer out of, or deeper into, the tool)
+5. Separation between groups
+6. Progress / narration while working
+7. Result of an action
+
+State — the closed set is decided (see `SPEC.md`); these are the meanings found
+in the wild:
+
+| meaning | seen as |
+|---|---|
+| checked, nothing to do | `✅ No leftovers` · `[PASS]` · **`✨ nothing eligible`** |
+| done, something moved | `✅ Moved 3 items to Trash` |
+| needs your judgement | `⚠️ Likely orphans (review)` · `[WARN]` |
+| operation failed | `❌ couldn't be moved` · `⚠️ could not restore` |
+| can't be touched | `🔒 container hint` |
+| level, with honest unknown | `● / ○` **(no slot yet — TBD)** |
+
+Two glyphs for one meaning inside a single tool: sheersweep says "nothing to do"
+with **both** `✅` (no leftovers / no orphaned dependencies) and `✨` (nothing
+eligible to reclaim). Found only on a second pass — the first inventory missed
+`✨` entirely, which is the argument for a lint over an eyeball.
+
+Note the overload found in sheersweep: `⚠️` currently carries **both** "needs
+your judgement" and "the operation failed". The badge set forces those apart —
+the width constraint is a semantic forcing function.
+
+Interactive — presentation only in v1:
+
+8. A selectable row and its selected/unselected mark
+
+---
+
+## Open, deliberately not decided here
+
+- **Colour: in or out of the CLI signet?** (finding 1 — the biggest)
+- **`·` vs `•`** — and clikae uses both, so this needs a *job* for each, or a cull
+- **Is `▸` the family group header?** (only sheersweep uses it; clikae has 2 uses)
+- **Do horizontal rules retire family-wide?** (sheersweep 0, sheerstatus 3, clikae 21)
+- **Is `[x]` the family selection mark?**
+- **Is "level with honest unknown" a family role?** (finding 2)
+- **A repeatable method for the system-dictionary check** (finding 5)
+- **When sheerstatus's 9-locale tests get rewritten** for the do-not-translate ruling
+
+---
+
+*Audited 2026-07-26. Re-run the counts before trusting them — they are a
+snapshot, and the point of the lint is that nobody should have to.*
