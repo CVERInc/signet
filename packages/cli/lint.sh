@@ -99,9 +99,28 @@ check_badge_translated() {   # $1 = file
 # don't, and stamping all 79 would turn the seal into wallpaper. The shebang is
 # the discriminator, because it already answers the question: a file with one is
 # meant to be run. Nothing to configure, nothing to keep in sync.
+#
+# Then there are test harnesses. They have shebangs, they print to a person, and
+# their rendering IS held to the spec — but they ship with nothing, so there is
+# no product for a seal to name.
+#
+# The discriminator is the extension. A tool you type has none — `sheersweep`,
+# `sheerstatus`, `bin/clikae`; a script something else runs keeps its `.sh` —
+# `test.sh`, `func-test.sh`, every file under `lib/`. That is not a rule anyone
+# has to remember: it is already how every one of these repos is laid out, and
+# it is a property of the file rather than a list to maintain.
+#
+# The first attempt WAS a list — exempt `tests/` and `scripts/` — and it broke
+# within the hour, on sheerstatus, whose harness sits in the repo root as
+# `./test.sh`. A list that needs its first amendment on first contact is not a
+# rule, it's a habit with an audit trail.
+#
+# Carrying a seal is never forbidden; `lint.sh` has one. This only decides who
+# gets asked for it.
 check_header_seal() {   # $1 = file
-  local head8
+  local head8 base="${1##*/}"
   head -1 "$1" 2>/dev/null | /usr/bin/grep -q '^#!' || return 0
+  case "$base" in *.*) return 0 ;; esac
   head8="$(head -8 "$1" 2>/dev/null)"
   printf '%s' "$head8" | /usr/bin/grep -qE '^# [a-z0-9-]+ — .* you can read\.' \
     || report "$1:1" "seal-line1" "missing '# <name> — the <thing> you can read.'"
@@ -149,9 +168,14 @@ run_checks() {   # $1 = file
 # So every check gets a fixture it MUST fire on. If a check goes quiet here, the
 # lint reports itself broken rather than blessing the codebase.
 self_test() {
-  local dir bad good rc=0 before
+  local dir bad good harness rc=0 before
   dir="$(mktemp -d)" || { echo "self-test: mktemp failed" >&2; return 1; }
-  bad="$dir/bad.sh"; good="$dir/good.sh"
+  # Extensionless, because that is what the seal check keys on: these two stand
+  # in for a tool you type.
+  bad="$dir/badtool"; good="$dir/goodtool"
+  # Same missing seal, one dot different. Without this pair, "a .sh is exempt"
+  # and "the seal check is broken" produce identical output.
+  harness="$dir/harness.sh"
 
   # bad.sh breaks every decided rule at once, INCLUDING the seal (no identity
   # lines) — an earlier version kept the seal here and the seal check "passed"
@@ -179,6 +203,11 @@ self_test() {
     printf 'printf "  %%s ──▶ %%s\\\\n" "$a" "$b"\n'
     printf '# ── a source divider ─────────────────────────────────────────\n'
   } > "$good"
+  {
+    printf '#!/usr/bin/env bash\n'
+    printf '# just some harness\n'
+    printf 'echo "[ PASS ] a check passed"\n'
+  } > "$harness"
 
   fires() {   # $1 = label  $2 = function  $3 = file
     before="$VIOLATIONS"; VIOLATIONS=0
@@ -208,6 +237,7 @@ self_test() {
   silent "bullet      " check_bullet            "$good"
   silent "rule        " check_rule              "$good"
   silent "seal        " check_header_seal       "$good"
+  silent "seal/script " check_header_seal       "$harness"
 
   rm -rf "$dir"
   [ "$rc" -eq 0 ] && echo "self-test ok" || echo "self-test BROKEN — fix the lint before trusting a clean run" >&2

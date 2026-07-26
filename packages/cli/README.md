@@ -29,10 +29,15 @@ signet-cli-lint bin/clikae $(find lib -name '*.sh') # or every file of a multi-f
 signet-cli-lint --self-test                         # prove the checks can still fire
 ```
 
-Point it at everything a tool is made of. The seal is asked only of files with a
-shebang — a sourced library has no identity of its own, and stamping all 79 of
-clikae's would turn the seal into wallpaper. Every other check applies to every
-file, because help text and prompts are output too.
+Point it at everything a tool is made of, harnesses included — help text,
+prompts and test output are all screens someone reads.
+
+The **seal** is narrower: it names a product, so it is asked only of a file with
+a shebang *and no extension*. A tool you type has none (`sheersweep`,
+`bin/clikae`); a sourced library or a script something else runs keeps its `.sh`.
+That is a property of the file rather than a list to maintain — the first
+attempt was a list (`tests/`, `scripts/`) and it needed its first amendment
+within the hour, on a repo whose harness sits in the root as `./test.sh`.
 
 Exit `0` clean, `1` violations, `2` usage, `3` the lint itself is broken.
 
