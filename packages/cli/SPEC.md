@@ -87,7 +87,17 @@ too, and stays where its size puts it) but **"might the reader not have it"**.
 This is the same admission the pointer itself already makes by printing a URL
 only when the tool isn't installed.
 
-**8. Never claim what didn't happen.**
+**8. A report answers only the question it promised to answer.**
+Information riding along gives itself away, and usually the tell is a column it
+can't fill. *Failure that taught it:* a "Homebrew updates available: 2" row sat
+in a group headed "Cleanable, inside the above" — space you can reclaim — with a
+bare `2` in the size column, because updates aren't space and upgrading may well
+use more. The instinct was to find something to put there (leave it blank? a
+dash?). The right move was to ask why it had nothing, and the answer was that it
+belonged to a different verb. **When a row can't fill a column, suspect the row,
+not the column.**
+
+**9. Never claim what didn't happen.**
 *Failure that taught it:* a dry-run that reports a freed-space delta is reporting
 a number it invented. It freed nothing; it may say only that.
 
