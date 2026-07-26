@@ -15,7 +15,7 @@
 set -u
 
 # The closed badge set (SPEC.md → State badges).
-BADGES="PASS DONE WARN FAIL HELD"
+BADGES="PASS DONE WARN CRIT FAIL HELD"
 
 VIOLATIONS=0
 report() {   # $1 = file:line  $2 = rule  $3 = what
@@ -93,8 +93,15 @@ check_badge_translated() {   # $1 = file
 # ---- C4 · the header seal --------------------------------------------------
 # The three-line mould every CVER CLI already shares. Checked on the first 8
 # lines so a shebang and a blank line don't matter.
+#
+# The seal identifies a *tool*, so it is asked of entry points only. A sourced
+# library has no identity of its own — clikae is one file you run and 78 you
+# don't, and stamping all 79 would turn the seal into wallpaper. The shebang is
+# the discriminator, because it already answers the question: a file with one is
+# meant to be run. Nothing to configure, nothing to keep in sync.
 check_header_seal() {   # $1 = file
   local head8
+  head -1 "$1" 2>/dev/null | /usr/bin/grep -q '^#!' || return 0
   head8="$(head -8 "$1" 2>/dev/null)"
   printf '%s' "$head8" | /usr/bin/grep -qE '^# [a-z0-9-]+ — .* you can read\.' \
     || report "$1:1" "seal-line1" "missing '# <name> — the <thing> you can read.'"
@@ -102,10 +109,38 @@ check_header_seal() {   # $1 = file
     || report "$1:1" "seal-line3" "missing 'https://oss.cver.net/<name>  ·  MIT © CVER Inc.'"
 }
 
+# ---- C5 · a retired bullet -------------------------------------------------
+# `·` marks an item and separates fields inside one; `•` was never doing a job
+# `·` wasn't. One meaning, one mark (SPEC.md → Structure).
+check_bullet() {   # $1 = file
+  local no line
+  while IFS=: read -r no line; do
+    [ -n "$no" ] || continue
+    _skip_line "$line" && continue
+    report "$1:$no" "bullet" "• is retired — the family bullet is ·"
+  done < <(/usr/bin/grep -n -- '•' "$1" 2>/dev/null)
+}
+
+# ---- C6 · a printed horizontal rule ----------------------------------------
+# A rule draws a border around a region it does not contain, and it vanishes
+# when the output is piped — `▸ Title` plus a blank line does the same job in
+# the copy someone pastes into an issue. Comments are exempt (see _skip_line):
+# a `# ── section ──` divider in the source is never printed.
+check_rule() {   # $1 = file
+  local no line
+  while IFS=: read -r no line; do
+    [ -n "$no" ] || continue
+    _skip_line "$line" && continue
+    report "$1:$no" "rule" "a printed horizontal rule — use '▸ Title' and a blank line"
+  done < <(/usr/bin/grep -nE -- '-{6,}|─{4,}|={6,}|_{6,}' "$1" 2>/dev/null)
+}
+
 run_checks() {   # $1 = file
   check_unknown_badge "$1"
   check_badge_padding "$1"
   check_badge_translated "$1"
+  check_bullet "$1"
+  check_rule "$1"
   check_header_seal "$1"
 }
 
@@ -124,10 +159,12 @@ self_test() {
   {
     printf '#!/usr/bin/env bash\n'
     printf '# just some script\n'
-    printf 'echo "[ CRIT ] not in the set"\n'   # signet-lint: fixture
+    printf 'echo "[ NOPE ] not in the set"\n'   # signet-lint: fixture
     printf 'echo "[PASS] unpadded"\n'   # signet-lint: fixture
-    printf 'echo "[CRIT] unpadded AND unknown — fell through both checks once"\n'   # signet-lint: fixture
+    printf 'echo "[NOPE] unpadded AND unknown — fell through both checks once"\n'   # signet-lint: fixture
     printf 'echo "[混雑] translated"\n'   # signet-lint: fixture
+    printf 'echo "• a retired bullet"\n'   # signet-lint: fixture
+    printf 'echo "--------------------------------"\n'   # signet-lint: fixture
   } > "$bad"
   {
     printf '#!/usr/bin/env bash\n'
@@ -137,6 +174,10 @@ self_test() {
     printf 'echo "[ PASS ] fine"\n'
     printf 'echo "[ WARN ] also fine"\n'
     printf 'echo "[x] a checkbox is not a badge"\n'
+    printf 'echo "   · an item · with an inline separator"\n'
+    printf 'echo "usage: widget --dry-run --json"\n'
+    printf 'printf "  %%s ──▶ %%s\\\\n" "$a" "$b"\n'
+    printf '# ── a source divider ─────────────────────────────────────────\n'
   } > "$good"
 
   fires() {   # $1 = label  $2 = function  $3 = file
@@ -158,10 +199,14 @@ self_test() {
   fires  "badge-vocab " check_unknown_badge     "$bad"
   fires  "badge-shape " check_badge_padding     "$bad"
   fires  "badge-i18n  " check_badge_translated  "$bad"
+  fires  "bullet      " check_bullet            "$bad"
+  fires  "rule        " check_rule              "$bad"
   fires  "seal        " check_header_seal       "$bad"
   silent "badge-vocab " check_unknown_badge     "$good"
   silent "badge-shape " check_badge_padding     "$good"
   silent "badge-i18n  " check_badge_translated  "$good"
+  silent "bullet      " check_bullet            "$good"
+  silent "rule        " check_rule              "$good"
   silent "seal        " check_header_seal       "$good"
 
   rm -rf "$dir"

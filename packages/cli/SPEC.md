@@ -118,6 +118,7 @@ A closed set. Anything else in `[ ---- ]` shape is a lint violation.
 | `[ PASS ]` | checked, nothing needed doing | state **unchanged** |
 | `[ DONE ]` | it happened, something moved | state **changed** |
 | `[ WARN ]` | needs your judgement | — |
+| `[ CRIT ]` | past the line, not merely near it | — |
 | `[ FAIL ]` | the operation did not succeed | — |
 | `[ HELD ]` | can't be touched (protected / sealed) | — |
 
@@ -155,12 +156,19 @@ limit is a semantic forcing function.**
 the column. The answer isn't a shorter synonym — it's that the rule tells you
 when something was never a badge.
 
-> **TBD — one rung may still be missing.** The set was derived from sheersweep,
-> which *acts*, and all 25 of its status keys mapped onto these five. sheerstatus
-> *measures*, and runs a three-rung ladder: `PASS → WARN → CRIT`. `CRIT` has no
-> home here — `WARN` would flatten the ladder, and `FAIL` means "the operation
-> didn't succeed", not "the reading is bad". Either the set grows a rung or the
-> ladder loses one; **do not decide this by writing code.**
+**`WARN` vs `CRIT` is the same question one step further: has the line already
+been crossed?** `WARN` is "look at this"; `CRIT` is "this is already costing you
+something". A tool that only *acts* rarely needs the rung — sheersweep's 25
+status keys mapped onto the other five with none left over. A tool that
+*measures* always does, because "getting full" and "already thrashing" are not
+the same reading and flattening them makes the report useless at the exact
+moment it matters.
+
+> *The set was derived from the tool that acts, and the tool that measures needed
+> a rung it didn't have.* Found by the lint on its first real run, not by
+> reading — the vocabulary check fired on sheerstatus's `[CRIT]` and there was no
+> honest way to rewrite it as one of the five. **A closed set derived from one
+> member is a sample of one.**
 
 ### Sizes — decided
 
@@ -201,22 +209,95 @@ looks like: `102400 KB` is exactly 100 MiB, so decimal renders `105 MB` and
 binary would render `100M`. A test that only asserts the right string can pass
 while the formatter silently changes base.
 
-### Structure — partly open
+### The result of an action — decided
 
-| role | rendering | status |
-|---|---|---|
-| group header | `▸ Title` | **TBD** — only sheersweep uses it today |
-| list item | `·` | **TBD** — `·` vs `•`, and clikae uses both |
-| next step | `→ where to go` | decided in shape; sheerstatus has none yet |
-| rebuild hint | `↺ <full paste-anywhere command>` | sheersweep only; family fit TBD |
-| separation between groups | a blank line | **TBD** — do rules retire family-wide? |
-| selection mark | `[x]` / `[ ]` | **TBD** — family role or clikae's own? |
-| level with an honest unknown | `● / ○` | **TBD** — is this a family role at all? |
-| **colour** | — | **TBD, and the biggest one** |
+**The number is the disk's answer, not ours.** What a tool removed is what it
+*meant* to remove; free space before and after is what actually happened. They
+differ for ordinary reasons — a file was still open, two paths were one inode,
+a sparse file was never occupying what it claimed. Reporting our own sum is
+reporting our intent and calling it a measurement.
 
-On colour: two tools use none, one uses it heavily (see `AUDIT.md`). sheersweep's
-emoji were standing in for colour it never had; clikae has the real thing. Not
-decided here. Do not decide it by writing code.
+**The unit follows the number, and a rounded-away result is a false report.**
+`0.0 GB freed` after clearing 57 MB is not a rounding artefact, it is the tool
+saying it did nothing. Use the same size rules as everywhere else — the unit is
+chosen per value, so a small win reads as a small win instead of as a failure.
+
+**When the delta is zero or negative, change the sentence, not the number.**
+Something else wrote to the disk while the sweep ran; the honest line names what
+the tool did (`Moved 23 items to Trash`) instead of reporting a delta the tool
+did not cause. Printing `-1.2 GB freed` blames the tool for the machine, and
+printing `0.0 GB` when 23 things moved is ruler 9.
+
+### Structure — decided
+
+| role | rendering |
+|---|---|
+| group header | `▸ Title`, with its rows directly beneath |
+| list item, read-only | `·` |
+| list item, selectable | `N)` — the number **is** the mark |
+| next step | `→ where to go` |
+| rebuild hint | `↺ <full paste-anywhere command>` |
+| separation between groups | a blank line — **no horizontal rules** |
+| selection mark | `[x]` / `[ ]` |
+| level, with an honest unknown | `● / ○` |
+
+**One character, two jobs: `·`.** It marks an item at the head of a line and
+separates fields inside one (`build output · 9`, `oss.cver.net/x · MIT`). `•` is
+retired family-wide — it was never doing a job `·` wasn't.
+
+**`▸` is the header mark because it is the only one that survives a pipe.** ANSI
+bold and a `----` rule both vanish into a file, and the reader is left unable to
+tell a title from a row. A rule is worse than nothing: it draws a border around
+a region it does not actually contain. `▸` plus a blank line already segments
+the page, and it segments it in the copy someone pastes into an issue.
+
+**The blank line goes between groups, not under the header.** A title and its
+rows are one block; separating them would make the header float free and imply
+a break where there is none.
+
+```
+▸ system-wide
+   ·   108 MB  (/Library/Caches)
+
+▸ Yours to act on
+   ·  41.1 GB  (/Users/tin)
+     → System Settings › Users
+```
+
+**A number is a promise you can act.** `N)` says "type this"; `·` says "this is
+for reading". Never decorate a numbered row with a bullet as well — that is two
+marks for one meaning, and it makes the reader look for a difference that
+isn't there.
+
+#### Colour
+
+**Colour may amplify. It may never carry.** Strip every escape sequence and the
+output must lose speed, not meaning. Non-TTY turns it off automatically, and
+`NO_COLOR` is honoured.
+
+The family's own reference implementation is clikae's fuel gauge, and it is
+worth reading before writing any coloured output:
+
+```
+● claude/h   over quota · resets 3pm      ← red,    and it says so
+● claude/l   82% this week                ← yellow, and it says so
+● codex/main                              ← green,  nothing to say
+○ gemini                                  ← dim, and the shape differs
+```
+
+Two of the four states are the ones that cost you something, and both spell
+themselves out in words on their own row. The third — everything is fine — needs
+no words at all. The fourth isn't a level, it's the absence of a reading, so it
+gets a **different shape**, not a different colour.
+
+So: **the states that matter are carried by text, the rest by shape, and colour
+by neither.** Delete every escape sequence from that block and all four states
+are still distinguishable. That is the test, and it is mechanical: pipe it to a
+file and read the file.
+
+It also shows what *not* to spend words on. Green says nothing because "fine"
+needs no explanation — the same instinct as putting state on the group instead
+of on every row.
 
 Two shapes that *are* settled, because they came out of specific failures:
 
@@ -236,6 +317,7 @@ Two shapes that *are* settled, because they came out of specific failures:
 | pass | `[ PASS ]` | `"pass"` |
 | done | `[ DONE ]` | `"done"` |
 | warn | `[ WARN ]` | `"warn"` |
+| crit | `[ CRIT ]` | `"crit"` |
 | fail | `[ FAIL ]` | `"fail"` |
 | held | `[ HELD ]` | `"held"` |
 

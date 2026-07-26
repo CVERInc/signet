@@ -24,9 +24,15 @@ whole design: drift is caught at build time or not at all.
 ## Using the lint
 
 ```sh
-signet-cli-lint sheersweep              # a tool's entry point(s)
-signet-cli-lint --self-test             # prove the checks can still fire
+signet-cli-lint sheersweep                          # a single-file tool
+signet-cli-lint bin/clikae $(find lib -name '*.sh') # or every file of a multi-file one
+signet-cli-lint --self-test                         # prove the checks can still fire
 ```
+
+Point it at everything a tool is made of. The seal is asked only of files with a
+shebang — a sourced library has no identity of its own, and stamping all 79 of
+clikae's would turn the seal into wallpaper. Every other check applies to every
+file, because help text and prompts are output too.
 
 Exit `0` clean, `1` violations, `2` usage, `3` the lint itself is broken.
 
@@ -61,7 +67,14 @@ deliberately non-conforming).
 
 ## Status
 
-The state-badge layer is decided and enforced. Structure — group headers,
-bullets, rules, selection marks, and **whether the CLI signet uses colour at
-all** — is open; see the end of `SPEC.md`. The lint deliberately does not check
-open questions: one that guesses is worse than one that waits.
+Decided and in `SPEC.md`: the six state badges, sizes, streams, group headers
+(`▸`), the one bullet (`·`), retired rules, the selection mark (`[x]`), the
+result line, and colour — which **amplifies but never carries**, the test being
+that you can pipe the output to a file and lose no meaning.
+
+Six of those are mechanically enforced. The rest are judgement, and the lint
+deliberately stays out: one that guesses is worse than one that waits.
+
+Still open (see the end of `AUDIT.md`): clikae's `[OK] [INFO] [WARN] [ERR]` log
+prefixes — 585 call sites of a role the spec doesn't cover — and four smaller
+things that are recorded rather than guessed at.

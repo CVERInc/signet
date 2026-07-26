@@ -20,13 +20,13 @@ can walk all three in one sitting and meet three languages.
 | Role | sheersweep | sheerstatus | clikae |
 |---|---|---|---|
 | **Group header** | `▸ Title` | bare text after a blank line, under a `----` rule | ANSI **bold** text, 2-space indent, no glyph |
-| **List item** | `·` | `•` | **both** — `·` ×119, `•` ×61 |
+| **List item** | `·` ×112, **`•` ×36** | `•` ×54 | `·` ×103, `•` ×21 |
 | **Next step** | `→` ×98 | **none (0)** — advice is prose under "Recommendation" | `→` ×150 |
 | **Rebuild hint** | `↺ cd … && npm install` | — | — |
 | **Status** | emoji: `✅ 🔴 ⚠️ ❌ 🔒 ✨` | `[PASS] [WARN] [CRIT]`, **translated** in ja/zh/ko | ANSI colour + `● ○` + `yes/no/-` in tables |
 | **Level indicator** | — | — | `●` (green/yellow/red) / `○` = *no reading* |
 | **Selection** | numbered picker (`64) com.spotify…`) | — (non-interactive) | `[x]` / `[ ]` checkboxes ×3 |
-| **Horizontal rules** | **0** (33 retired 2026-07-26) | 3 | 21 (`─`) |
+| **Horizontal rules** | **0** (33 retired 2026-07-26) | 3 | **0** (28 are source comments) |
 | **ANSI colour** | **0** | **0** | **67** escape sites, ~196 colour-var uses |
 | **Machine output** | — | `--json` | — |
 | **stdout / stderr split** | data → stdout, notice+heartbeat → stderr | not separated | not audited |
@@ -154,14 +154,19 @@ Both other tools point with `→` (98 and 150 uses). This is not a glyph choice 
 it is a missing role. Aligning sheerstatus means *adding* pointers, not
 translating them.
 
-### 4. clikae is internally inconsistent — and closer to sheersweep than sheerstatus is
+### 4. Two tools were internally inconsistent, not one
 
-`·` ×119 and `•` ×61 in the same codebase, both in output paths
-(`lib/core/tui.sh`, `lib/commands/*`). So the `·` vs `•` question is not only
-between tools; it is inside one.
+clikae prints `·` ×103 and `•` ×21; **sheersweep prints `·` ×112 and `•` ×36.**
+So the `·` vs `•` question was never only between tools — it was inside two of
+them, including the one being used as the reference.
 
-But note the direction: clikae's dominant separator (`·`) and pointer (`→`)
-already match sheersweep. The outlier on those two rows is sheerstatus.
+sheersweep's 36 all live in the localised `--help` heredocs, which is why the
+first pass called it "all `·`": the counts were taken over the report-building
+code, and help text is output too. **A tool's language includes the part you
+only read once.**
+
+On the other two rows, note the direction: clikae's dominant separator (`·`) and
+pointer (`→`) already match sheersweep. The outlier there is sheerstatus.
 
 ### 5. The system-dictionary audit item partly evaporated
 
@@ -197,6 +202,33 @@ binary, storage is decimal, and macOS is consistent about both).
 
 Found only because a bullet and a two-letter suffix looked inconsistent in one
 column. The notation was the symptom; the numbers were the defect.
+
+### 7. Three of this table's own numbers were wrong, in both directions
+
+Corrected 2026-07-27, when the decided rules got a lint and the lint was pointed
+at the real files:
+
+| row | first pass | actual | why |
+|---|---|---|---|
+| clikae horizontal rules | 21 | **0** | all 28 are `# ── section ──` source dividers |
+| sheersweep list item | all `·` | **`•` ×36** | its localised `--help` was never counted |
+| clikae list item | `·` 119 / `•` 61 | `·` 103 / `•` 21 printed | the rest are comments |
+
+Every one of them came from grepping the *file* to answer a question about the
+*output*. A comment is source; a reader never sees it. And the retire-the-rules
+decision was taken with "clikae: 21" sitting on the table — the honest number
+was one line, in one tool.
+
+The fix is not to count more carefully next time. **The lint already knows the
+difference** — `_skip_line` exempts comments, because a rule about printed text
+can't be broken by text that is never printed. So the counting moved into the
+lint, and this table is now a snapshot of something a machine re-derives:
+
+```sh
+signet-cli-lint sheersweep bin/clikae $(find lib -name '*.sh')
+```
+
+*An audit that reads is a first draft; an audit that runs is the audit.*
 
 ## Roles inventory (what a spec has to cover)
 
@@ -252,21 +284,33 @@ Interactive — presentation only in v1:
 
 ---
 
-## Open, deliberately not decided here
+## Open
 
-- **Colour: in or out of the CLI signet?** (finding 1 — the biggest)
-- **`·` vs `•`** — and clikae uses both, so this needs a *job* for each, or a cull
-- **Is `▸` the family group header?** (only sheersweep uses it; clikae has 2 uses)
-- **Do horizontal rules retire family-wide?** (sheersweep 0, sheerstatus 3, clikae 21)
-- **Is `[x]` the family selection mark?**
-- **Is "level with honest unknown" a family role?** (finding 2)
-- **Does the badge set need a third severity rung?** sheerstatus runs
-  `[PASS] → [WARN] → [CRIT]`; the five-badge set has one rung of concern. Found
-  by the lint on its first real run — the set was derived from the tool that
-  *acts*, and the tool that *measures* needs a ladder. **This blocks converting
-  sheerstatus's badges.**
+Everything structural was decided on 2026-07-26/27 and is in `SPEC.md`: colour
+amplifies but never carries, `·` is the one bullet, `▸` is the group header,
+rules retire, `[x]` is the selection mark, `● / ○` stays (clikae turned out to
+be the reference implementation, not the exception), and `CRIT` joined the set.
+
+What is genuinely still open:
+
+- **clikae's log-level prefixes.** `[OK] [INFO] [WARN] [ERR]` across **585 call
+  sites** — a role the spec doesn't cover. They are narration on stderr, not
+  state on a report row, but a reader meets `[WARN]` and `[ WARN ]` in one
+  session and has no way to know why they differ. Mapping them isn't mechanical:
+  `log_ok` is used both for *an action completed* and for *a check found
+  nothing*, which is the exact PASS/DONE overload the badge set exists to force
+  apart. **Do not decide this by writing code** — it is the narration layer of
+  the tool its author uses every day.
+- **`sheersweep` prints a count in a size column.** `·        1  (present)` for
+  local snapshots. Ruler 8 says when a row can't fill a column, suspect the row.
+- **sheerstatus's Recommendation section is 4-locale, not 9** — es/de/fr/pt fall
+  through to English. sheersweep has a CI gate that extracts every key × every
+  locale; sheerstatus has none, which is why the gap survived unnoticed.
+- **sheerstatus's own `test.sh`** prints `[PASS]` unpadded under `====` rules.
+  Developer-facing, not shipped, and the lint isn't pointed at it.
 - **A repeatable method for the system-dictionary check** (finding 5)
-- **When sheerstatus's 9-locale tests get rewritten** for the do-not-translate ruling
+- **`https://oss.cver.net/sheersweep` and `/sheerstatus` still 404** — a live
+  tool printing a dead link in its first four lines.
 
 ---
 
