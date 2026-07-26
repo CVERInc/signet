@@ -77,7 +77,17 @@ asking `brew` where it lives is true everywhere.
 **6. If it can't be said in four characters, it isn't a badge — it's a message.**
 And if it needs a sentence of context, it isn't a badge either.
 
-**7. Never claim what didn't happen.**
+**7. A step that needs software the reader may not have goes last.**
+Within a list, rank by whether this tool can act at all, and only then by size.
+Every "run this verb" row belongs together, and the one pointing at another
+product sits at the end however large it is — a list that promises "here is what
+to run" should keep that promise to its final line rather than break it halfway
+down. Note the test: not "is it outside this tool" (System Settings is outside
+too, and stays where its size puts it) but **"might the reader not have it"**.
+This is the same admission the pointer itself already makes by printing a URL
+only when the tool isn't installed.
+
+**8. Never claim what didn't happen.**
 *Failure that taught it:* a dry-run that reports a freed-space delta is reporting
 a number it invented. It freed nothing; it may say only that.
 
