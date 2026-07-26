@@ -142,6 +142,45 @@ when something was never a badge.
 > didn't succeed", not "the reading is bad". Either the set grows a rung or the
 > ladder loses one; **do not decide this by writing code.**
 
+### Sizes — decided
+
+**A size is written the way this machine writes it to its owner**, because the
+owner can check us. That is not one rule but two, and the base follows the
+**domain**, not the tool that happens to report it:
+
+| domain | base | example | what macOS shows |
+|---|---|---|---|
+| **storage** — disks, files, caches | **decimal** (1000) | `202.7 GB` | diskutil / Finder / System Settings: `202.7 GB` |
+| **memory** — RAM, swap | **binary** (1024) | `16 GB` | About This Mac: `16 GB` · `vm.swapusage`: `3072.00M` |
+
+The unit is spelled out — `GB`, `MB`, `KB` — as macOS spells it. That also tells
+it apart at a glance from `du -h`'s binary `G`/`M`, which is an existing
+convention rather than one invented here.
+
+*Failure that taught it:* every size in sheersweep was `du -h`'s binary output —
+`189Gi` where diskutil said `202.7 GB` for the same volume. **No surface the
+owner could check us against used our number.** And the map points at System
+Settings, so we were sending people to a figure that wouldn't match the one we
+had just shown them — a seam we made ourselves.
+
+*Second failure, in the sibling:* sheerstatus divided by 1048576 and printed the
+result as `228 GB` — a GiB value wearing a decimal label, which is worse than
+either base used honestly.
+
+Two traps worth writing down:
+
+- `df -H` is decimal, but **`du -H` means "follow symlinks"**. The flags do not
+  mirror each other; do the arithmetic yourself from `-k` blocks.
+- Quoted third-party figures need checking, not converting. Homebrew divides by
+  1000 and writes `MB`; `du` divides by 1024 and writes `M`. Those had been
+  sitting in one column looking comparable. Once the column is decimal, brew's
+  figures need no conversion at all — **the odd one out was us**.
+
+A guard belongs in the test suite, and it should name what the *wrong* answer
+looks like: `102400 KB` is exactly 100 MiB, so decimal renders `105 MB` and
+binary would render `100M`. A test that only asserts the right string can pass
+while the formatter silently changes base.
+
 ### Structure — partly open
 
 | role | rendering | status |

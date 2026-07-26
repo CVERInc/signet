@@ -179,6 +179,25 @@ audit that can be re-run rather than a one-time opinion.
 
 ---
 
+### 6. Every tool wrote sizes in a base its owner could not verify
+
+Same volume, four answers:
+
+```
+diskutil / Finder / System Settings   202.7 GB   ← what the owner sees
+brew (divides by 1000)                 …MB       ← agrees with macOS
+sheersweep (du -h)                     189Gi     ← agrees with nothing on screen
+sheerstatus (÷1048576, printed "GB")   188 GB    ← a GiB value with a decimal label
+```
+
+The odd ones out were ours, and the sibling's was the worst of the four: the
+right label on the wrong arithmetic. Both are fixed — see the size rules in
+`SPEC.md`, which also record the two traps (`du -H` is not `df -H`; memory is
+binary, storage is decimal, and macOS is consistent about both).
+
+Found only because a bullet and a two-letter suffix looked inconsistent in one
+column. The notation was the symptom; the numbers were the defect.
+
 ## Roles inventory (what a spec has to cover)
 
 Structural — every tool has all of these, whatever it calls them:
