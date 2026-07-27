@@ -272,12 +272,21 @@ state belongs to the group.
 **A note is not an item.** A line that summarises the list it follows takes no
 bullet, and never borrows the size column to hold something that isn't a size.
 
-**The sort key leads, and the variable-width field goes last.** Two sections of
-one list may hold their columns in different orders — a name-sorted section
-leads with the name, a size-sorted one leads with the size — and the first
-column then tells you how the section is ordered without a word.
+**The magnitude leads, and the variable-width field goes last.**
 
-The second half of that rule is not taste. A field of unbounded width in the
+This was first written as "the *sort key* leads", to justify one list holding
+two shapes — a name-sorted section leading with the name, a size-sorted one with
+the size. That clause lasted a day. Asked whether the rule and the interface
+were really the same thing, the honest answer was no: the name-sorted section
+was the exception, and the rule had been bent around it.
+
+Sorting everything by magnitude removed the exception and the clause with it.
+It was also just better: **a picker is the discovery path, not the lookup path.**
+Anyone who knows which app they want already has a door — `uninstall <name>` —
+so the list is for asking *what is here and what does each cost*, and that
+question wants the heaviest row at the top.
+
+The second half of the rule is not taste. A field of unbounded width in the
 *middle* of a row shears every column after it the moment something is longer
 than the padding you guessed:
 
