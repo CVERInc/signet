@@ -272,6 +272,36 @@ state belongs to the group.
 **A note is not an item.** A line that summarises the list it follows takes no
 bullet, and never borrows the size column to hold something that isn't a size.
 
+**The sort key leads, and the variable-width field goes last.** Two sections of
+one list may hold their columns in different orders — a name-sorted section
+leads with the name, a size-sorted one leads with the size — and the first
+column then tells you how the section is ordered without a word.
+
+The second half of that rule is not taste. A field of unbounded width in the
+*middle* of a row shears every column after it the moment something is longer
+than the padding you guessed:
+
+```
+   20) com.getdropbox.dropbox.alternatenotificationservice    33 KB  (…)
+   19) com.getdropbox.dropbox.garcon                   61 KB  (…)
+```
+
+Put it last and no input can break the layout, because nothing is lined up
+against it:
+
+```
+   19)    61 KB  com.getdropbox.dropbox.garcon
+   20)    33 KB  com.getdropbox.dropbox.alternatenotificationservice
+```
+
+**A hint that repeats the row is not a hint.** The picker used to append a
+guessed vendor to every orphan id — `com.dropbox.DropboxMacUpdate
+(dropboxmacupdate?)`. Measured against 1073 real bundle ids, **1067 were the
+id's own last component, lowercased**, printed two columns from the id itself;
+four in a thousand said something new. It cost more than the noise: the same
+parentheses carry facts elsewhere, and a mark that is filler 99% of the time
+teaches the reader to stop looking inside them.
+
 > *A glyph that dissolved.* `leftovers` used `↳` for "what this row refers to" —
 > a real job neither `→` nor `↺` does, so it looked like it had earned a place.
 > Re-rendered as a picker row, the fact fit in the parentheses that already
