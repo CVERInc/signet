@@ -255,6 +255,31 @@ the page, and it segments it in the copy someone pastes into an issue.
 rows are one block; separating them would make the header float free and imply
 a break where there is none.
 
+**A report title is not a group header.** The line that names the whole report
+carries no `▸` — the `▸` headers beneath it are its groups, and a mark on both
+puts a parent in competition with its own children. `The sheersweep:` and
+`Reclaim build output —…` head reports; `▸ Yours to act on` heads a group.
+
+**A group header may carry a badge, but never opens with one.** `▸` says a group
+starts here; a badge says what state it is in. Two marks, two jobs — and the
+badge is there because of ruler 4: when every row in a group shares a state, the
+state belongs to the group.
+
+```
+▸ [ WARN ] Unidentified — heavy, gitignored, and I can't prove these are safe
+```
+
+**A note is not an item.** A line that summarises the list it follows takes no
+bullet, and never borrows the size column to hold something that isn't a size.
+
+> *A glyph that dissolved.* `leftovers` used `↳` for "what this row refers to" —
+> a real job neither `→` nor `↺` does, so it looked like it had earned a place.
+> Re-rendered as a picker row, the fact fit in the parentheses that already
+> carry `(what)`, and the third arrow was simply not needed. **Before adding a
+> mark, check whether an existing shape can hold the fact** — a mark earns its
+> place by doing a job no other mark does, and "no other mark does it *here*" is
+> not the same test.
+
 ```
 ▸ system-wide
    ·   108 MB  (/Library/Caches)
