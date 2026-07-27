@@ -272,6 +272,26 @@ state belongs to the group.
 **A note is not an item.** A line that summarises the list it follows takes no
 bullet, and never borrows the size column to hold something that isn't a size.
 
+**`↳` is the outcome of the row above it.** `·` says *this is one of the things*;
+`↳` says *this is what happened to the thing above*. They are different
+relationships, and indentation alone cannot carry the second one — an indented
+`·` still reads as a nested item rather than a result.
+
+```
+   3) 1.2 GB  ~/proj/crawl
+        ↳ skipped — kept in place.
+```
+
+This mark was very nearly deleted for tidiness: it is the only structural
+character outside `·` and `▸`, the lint has never enforced it, and "the family
+has two marks" is a cleaner sentence than "the family has three". What stopped
+it was asking what `·` would say in its place — and the answer was *something
+false*. A mark that survives that question has earned its place (ruler 1); a
+mark deleted because the set looked tidier has only made the set tidier.
+
+It never opens a group and never carries a badge. If the outcome needs a state,
+the row above it takes the badge.
+
 **The magnitude leads, and the variable-width field goes last.**
 
 This was first written as "the *sort key* leads", to justify one list holding

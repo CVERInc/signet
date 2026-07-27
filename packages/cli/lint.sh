@@ -136,8 +136,8 @@ check_bullet() {   # $1 = file
   while IFS=: read -r no line; do
     [ -n "$no" ] || continue
     _skip_line "$line" && continue
-    report "$1:$no" "bullet" "• is retired — the family bullet is ·"
-  done < <(/usr/bin/grep -n -- '•' "$1" 2>/dev/null)
+    report "$1:$no" "bullet" "• is retired — the family bullet is ·"   # signet-lint: fixture — must name the mark it forbids
+  done < <(/usr/bin/grep -n -- '•' "$1" 2>/dev/null)   # signet-lint: fixture — must name the mark it forbids
 }
 
 # ---- C6 · a printed horizontal rule ----------------------------------------
@@ -154,12 +154,39 @@ check_rule() {   # $1 = file
   done < <(/usr/bin/grep -nE -- '-{6,}|─{4,}|={6,}|_{6,}' "$1" 2>/dev/null)
 }
 
+# ---- C7 · a printed emoji --------------------------------------------------
+# The badge set says the result of a check is `[ PASS ]`. An emoji beside it is
+# a second vocabulary for the same fact, and it is the one that dies in a pipe,
+# in a log, and in a screen reader.
+#
+# This check exists because its absence was invisible for a day: sheersweep's
+# harness carried a COMMENT explaining that `✅` beside a tool's `[ PASS ]`
+# makes a person learn two vocabularies — and then shipped `✅ ALL GREEN`, plus
+# `🧟` and `⚠️` inside two test names. All three files linted clean. The lint
+# was not letting them through; nothing here was looking.
+#
+# Two ranges, because one is not enough and finding that out cost a round:
+# `[😀-🿿]` alone catches 🧟 (astral) and misses ✅ ⚠️ ❌ entirely — those live
+# in the BMP at U+2600–U+27BF. Verified on BSD grep, which is the whole reason
+# this is two literal ranges rather than a `\p{Emoji}` class it does not have.
+#
+# The family's own marks sit outside both ranges and stay quiet: · ▸ ↳ → ▶ ─.
+check_emoji() {   # $1 = file
+  local no line
+  while IFS=: read -r no line; do
+    [ -n "$no" ] || continue
+    _skip_line "$line" && continue
+    report "$1:$no" "emoji" "a printed emoji — the badge already says it, in eight columns"
+  done < <(/usr/bin/grep -nE -- '[☀-➿]|[😀-🿿]' "$1" 2>/dev/null)   # signet-lint: fixture — must name the mark it forbids
+}
+
 run_checks() {   # $1 = file
   check_unknown_badge "$1"
   check_badge_padding "$1"
   check_badge_translated "$1"
   check_bullet "$1"
   check_rule "$1"
+  check_emoji "$1"
   check_header_seal "$1"
 }
 
@@ -189,6 +216,8 @@ self_test() {
     printf 'echo "[混雑] translated"\n'   # signet-lint: fixture
     printf 'echo "• a retired bullet"\n'   # signet-lint: fixture
     printf 'echo "--------------------------------"\n'   # signet-lint: fixture
+    printf 'echo "✅ ALL GREEN"\n'   # signet-lint: fixture — BMP emoji
+    printf 'echo "picked the \U0001F9DF row"\n'   # signet-lint: fixture — astral
   } > "$bad"
   {
     printf '#!/usr/bin/env bash\n'
@@ -199,9 +228,10 @@ self_test() {
     printf 'echo "[ WARN ] also fine"\n'
     printf 'echo "[x] a checkbox is not a badge"\n'
     printf 'echo "   · an item · with an inline separator"\n'
+    printf 'echo "        ↳ skipped — kept in place."\n'
     printf 'echo "usage: widget --dry-run --json"\n'
     printf 'printf "  %%s ──▶ %%s\\\\n" "$a" "$b"\n'
-    printf '# ── a source divider ─────────────────────────────────────────\n'
+    printf '# ── a source divider ─────────────────────────────────────────\n'   # signet-lint: fixture — must name the mark it forbids
   } > "$good"
   {
     printf '#!/usr/bin/env bash\n'
@@ -230,12 +260,14 @@ self_test() {
   fires  "badge-i18n  " check_badge_translated  "$bad"
   fires  "bullet      " check_bullet            "$bad"
   fires  "rule        " check_rule              "$bad"
+  fires  "emoji       " check_emoji             "$bad"
   fires  "seal        " check_header_seal       "$bad"
   silent "badge-vocab " check_unknown_badge     "$good"
   silent "badge-shape " check_badge_padding     "$good"
   silent "badge-i18n  " check_badge_translated  "$good"
   silent "bullet      " check_bullet            "$good"
   silent "rule        " check_rule              "$good"
+  silent "emoji       " check_emoji             "$good"
   silent "seal        " check_header_seal       "$good"
   silent "seal/script " check_header_seal       "$harness"
 
