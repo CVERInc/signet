@@ -124,3 +124,20 @@ bleedblend-push` so it tints the chrome and pushes content), `id?`.
 The href is built client-side so it stays correct across view transitions.
 SSR-safe; add `.bleedblend-push` if you want it to push content instead of
 overlaying it.
+
+**Colour** — the banner self-colours per host, with no per-site override. Every
+colour resolves through one chain: your theme's `--gd-*` tokens if you publish
+them → the CVER `--color-*` palette → CVER teal. A themed site therefore gets its
+own accent automatically; a site that publishes none keeps the canonical teal in
+both light and dark.
+
+**`--signet-locale-banner-height`** — `locale-banner.js` publishes the banner's
+live bottom edge on `:root`. A `position: fixed`/`sticky` site header at `top: 0`
+would otherwise sit under the banner; offset it by this var instead:
+
+```css
+.site-header { position: sticky; top: var(--signet-locale-banner-height, 0px); }
+```
+
+It tracks the bottom edge rather than the height, so a banner that scrolls away
+lets the header dock to the top on its own.

@@ -5,23 +5,71 @@
  * dismiss), and the markup + per-locale copy come from the framework wrappers
  * (LocaleBanner.astro / .svelte).
  *
- * Colours read the CVER palette tokens when the host defines them, and fall
- * back to the canonical CVER teal so the banner is self-contained:
- *   --color-primary        #aceace   (mint, light-mode bg)
- *   --color-primary-deeper #084a4c   (deep teal, text / dark-mode bg / pill)
- *   --color-primary-light  #4fd1ca
- *   --color-ink            #f5fbfa
+ * TWO KINDS OF HOST, ONE FILE. Every colour resolves through one chain:
+ *     host theme tokens (--gd-*)  →  the CVER palette (--color-*)  →  literals
+ * A THEMED host (a site whose theme publishes --gd-*) gets its OWN colour with no
+ * per-site override. A STANDALONE host keeps the canonical CVER teal. The chain
+ * is written once, into the --lb-* internals below; every rule reads those.
+ *
+ * That indirection is the point, not tidiness: it is what lets the dark block
+ * re-point a few fallbacks instead of restating every rule, so the two hosts
+ * cannot drift apart one rule at a time.
+ *
+ * Why there is still an @media dark block when --gd-* are already mode-aware
+ * (each theme redefines them under light/dark): it swaps only the STANDALONE
+ * tail of each chain. A themed host resolves to the same --gd-* value inside it,
+ * so for that host the whole block is a no-op.
  *
  * Positioning (fixed/sticky top, safe-area) is intentionally NOT set here — add
  * bleedblend's `.bleedblend-top` (overlay) or `.bleedblend-top.bleedblend-push`
  * (reserve space) via the wrapper's `class` prop if you want chrome tinting.
+ * locale-banner.js publishes `--signet-locale-banner-height` (the banner's live
+ * bottom edge) so a fixed/sticky site header can offset below it.
  */
 
 .locale-banner {
-  background: var(--color-primary, #aceace);
-  color: var(--color-primary-deeper, #084a4c);
-  border-bottom: 1px solid rgba(8, 74, 76, 0.18);
+  /* The tint, and the surface it is mixed into. Standalone BOTH tails land on the
+     same colour, so color-mix collapses to exactly that colour — the flat CVER
+     band. Themed, it is 14% accent lifted off the theme's own soft surface. */
+  --lb-tint: var(--gd-accent, var(--color-primary, #aceace));
+  --lb-base: var(--gd-soft, var(--gd-bg, var(--color-primary, #aceace)));
+  --lb-ink: var(--gd-text, var(--color-primary-deeper, #084a4c));
+  --lb-hair: var(--gd-border, rgba(8, 74, 76, 0.18));
+  /* 🔴 NOT --gd-muted on its own. A themed band mixes 14% accent into --gd-soft,
+     so it sits a shade DARKER than the surface a theme tunes its muted ink
+     against — an ink pinned to AA on --gd-soft itself still lands around 4.2:1
+     here, under the bar. A component that derives its own surface owns the
+     contrast on it. Standalone both operands are the same colour, so this
+     collapses to the plain muted ink and nothing changes. */
+  --lb-quiet: color-mix(in srgb, var(--gd-muted, rgba(8, 74, 76, 0.7)) 65%, var(--gd-text, rgba(8, 74, 76, 0.7)));
+  /* 🔴 The pill fills with the DEEP accent, never --gd-accent. --gd-accent-ink is
+     the ink defined to sit on that deep fill (white in most themes); pairing it
+     with the light --gd-accent — a page-INK colour — puts white on a light tint
+     at ~2.6:1 in BOTH schemes, i.e. an unreadable button. --gd-accent-hover is
+     the lightest tint that still carries that ink, so hover lifts instead of
+     landing darker than rest. */
+  --lb-fill: var(--gd-accent-deep, var(--color-primary-deeper, #084a4c));
+  --lb-fill-ink: var(--gd-accent-ink, var(--color-ink, #f5fbfa));
+  --lb-fill-hover: var(--gd-accent-hover, var(--gd-accent-deep, #052829));
+
+  background: color-mix(in srgb, var(--lb-tint) 14%, var(--lb-base));
+  color: var(--lb-ink);
+  border-bottom: 1px solid var(--lb-hair);
   font-size: 0.875rem;
+}
+
+@media (prefers-color-scheme: dark) {
+  /* Standalone tails only — a themed host keeps resolving to its own --gd-*. */
+  .locale-banner {
+    --lb-tint: var(--gd-accent, var(--color-primary-deeper, #084a4c));
+    --lb-base: var(--gd-soft, var(--gd-bg, var(--color-primary-deeper, #084a4c)));
+    --lb-ink: var(--gd-text, var(--color-ink, #f5fbfa));
+    --lb-hair: var(--gd-border, rgba(245, 251, 250, 0.14));
+    --lb-quiet: color-mix(in srgb, var(--gd-muted, rgba(245, 251, 250, 0.7)) 65%, var(--gd-text, rgba(245, 251, 250, 0.7)));
+    --lb-fill: var(--gd-accent-deep, var(--color-primary, #aceace));
+    --lb-fill-ink: var(--gd-accent-ink, var(--color-primary-deeper, #084a4c));
+    --lb-fill-hover: var(--gd-accent-hover, var(--gd-accent-deep, var(--color-primary-light, #4fd1ca)));
+  }
 }
 
 .locale-banner[hidden] {
@@ -59,7 +107,7 @@
 .locale-banner__decline {
   border: none;
   background: transparent;
-  color: rgba(8, 74, 76, 0.7);
+  color: var(--lb-quiet);
   font: inherit;
   font-weight: 500;
   padding: 0.4rem 0.85rem;
@@ -68,19 +116,22 @@
   white-space: nowrap;
 }
 
+/* The hover wash rides the INK, not the tint: on a themed band the tint IS
+   roughly the band, so an accent wash would be invisible there — and the ink is
+   the one colour guaranteed to contrast with the surface in every host. */
 .locale-banner__decline:hover {
-  color: var(--color-primary-deeper, #084a4c);
-  background: rgba(8, 74, 76, 0.08);
+  color: var(--lb-ink);
+  background: color-mix(in srgb, var(--lb-ink) 12%, transparent);
 }
 
-/* Primary action — the filled pill. */
+/* Primary action — the filled accent pill. */
 .locale-banner__continue {
   display: inline-flex;
   align-items: center;
   padding: 0.4rem 1rem;
-  border-radius: 9999px;
-  background: var(--color-primary-deeper, #084a4c);
-  color: var(--color-ink, #f5fbfa);
+  border-radius: var(--gd-pill, 9999px);
+  background: var(--lb-fill);
+  color: var(--lb-fill-ink);
   font-weight: 600;
   font-size: 0.8125rem;
   white-space: nowrap;
@@ -88,27 +139,5 @@
 }
 
 .locale-banner__continue:hover {
-  background: #052829;
-}
-
-@media (prefers-color-scheme: dark) {
-  .locale-banner {
-    background: var(--color-primary-deeper, #084a4c);
-    color: var(--color-ink, #f5fbfa);
-    border-bottom: 1px solid rgba(245, 251, 250, 0.14);
-  }
-  .locale-banner__decline {
-    color: rgba(245, 251, 250, 0.7);
-  }
-  .locale-banner__decline:hover {
-    color: var(--color-ink, #f5fbfa);
-    background: rgba(245, 251, 250, 0.1);
-  }
-  .locale-banner__continue {
-    background: var(--color-primary, #aceace);
-    color: var(--color-primary-deeper, #084a4c);
-  }
-  .locale-banner__continue:hover {
-    background: var(--color-primary-light, #4fd1ca);
-  }
+  background: var(--lb-fill-hover);
 }

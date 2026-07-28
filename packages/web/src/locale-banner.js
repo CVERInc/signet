@@ -90,6 +90,20 @@ function wire(banner) {
   var hrefStrategy = cfg.hrefStrategy || 'prefix';
   var queryParam = cfg.queryParam || 'lang';
 
+  // Publish the banner's rendered height so fixed/sticky chrome (an overlay or
+  // sticky site header) can offset below it instead of being covered. The banner
+  // reserves its own row via bleedblend-push, but position:fixed/sticky siblings
+  // at top:0 still stack under it — this var is how they stay clear.
+  function syncBannerHeight() {
+    // Track the banner's LIVE bottom edge, not just its height: when the banner
+    // rides in normal flow and scrolls away, this falls from its height to 0, so
+    // a fixed/sticky header offsetting by this var docks to the top edge as the
+    // banner leaves. For a pinned (sticky) banner it stays at the banner height,
+    // so the header stays clear — same result either way.
+    var h = banner.hidden ? 0 : Math.max(0, Math.round(banner.getBoundingClientRect().bottom));
+    document.documentElement.style.setProperty('--signet-locale-banner-height', h + 'px');
+  }
+
   if (!banner.__signetWired) {
     banner.__signetWired = true;
     banner.addEventListener('click', function (e) {
@@ -99,8 +113,23 @@ function wire(banner) {
           localStorage.setItem(storageKey, '1');
         } catch (e2) {}
         banner.hidden = true;
+        syncBannerHeight();
       }
     });
+    // ResizeObserver keeps the var honest across show/hide (display:none → 0) and
+    // wrap-driven height changes on narrow viewports; resize is a belt-and-suspenders.
+    if (typeof ResizeObserver !== 'undefined') {
+      new ResizeObserver(syncBannerHeight).observe(banner);
+    }
+    window.addEventListener('resize', syncBannerHeight);
+    // Scroll updates the offset so a scroll-away banner lets the header dock to
+    // the top; rAF-throttled to one write per frame.
+    var scrollTick = false;
+    window.addEventListener('scroll', function () {
+      if (scrollTick) return;
+      scrollTick = true;
+      requestAnimationFrame(function () { syncBannerHeight(); scrollTick = false; });
+    }, { passive: true });
   }
 
   var pathNow = window.location.pathname.replace(/\/$/, '') || '/';
@@ -143,6 +172,7 @@ function wire(banner) {
   if (dismiss && pick.dismiss) dismiss.textContent = pick.dismiss;
 
   banner.hidden = false;
+  syncBannerHeight();
 }
 
 export function init() {
