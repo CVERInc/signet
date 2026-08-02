@@ -185,18 +185,31 @@ check_rule() {   # $1 = file
 # was not letting them through; nothing here was looking.
 #
 # Two ranges, because one is not enough and finding that out cost a round:
-# `[😀-🿿]` alone catches 🧟 (astral) and misses ✅ ⚠️ ❌ entirely — those live
-# in the BMP at U+2600–U+27BF. Verified on BSD grep, which is the whole reason
-# this is two literal ranges rather than a `\p{Emoji}` class it does not have.
+# astral alone catches 🧟 and misses ✅ ⚠️ ❌ entirely — those live in the BMP at
+# U+2600–U+27BF.
 #
-# The family's own marks sit outside both ranges and stay quiet: · ▸ ↳ → ▶ ─.
+# 🩸 Written first as literal character ranges, verified on BSD grep, and never
+# once run on GNU grep: this check landed at 20:42 on 2026-07-27 and the last
+# sibling CI run was 10:51 that morning. reef wired it up on 2026-08-02 and the
+# self-test failed on the first ubuntu runner — "did not fire on a known-bad
+# fixture". A character range over multibyte glyphs is collation-dependent, so
+# it means different things in different locales and nothing reliable in any:
+# under LC_ALL=C the same pattern went the OTHER way and matched `→`, one of the
+# family's own marks.
+#
+# So it is bytes, under a forced C locale — the same trick check_badge_translated
+# already documents, and for the same reason. `\xE2[\x98-\x9E]` is exactly
+# U+2600–U+27BF in UTF-8; `\xF0\x9F` is the astral plane's emoji block.
+#
+# The family's own marks sit outside both and stay quiet: · ▸ ↳ → ▶ ─. That is a
+# fixture in the self-test, not a claim here.
 check_emoji() {   # $1 = file
   local no line
   while IFS=: read -r no line; do
     [ -n "$no" ] || continue
     _skip_line "$line" && continue
     report "$1:$no" "emoji" "a printed emoji — the badge already says it, in eight columns"
-  done < <(/usr/bin/grep -nE -- '[☀-➿]|[😀-🿿]' "$1" 2>/dev/null)   # signet-lint: fixture — must name the mark it forbids
+  done < <(LC_ALL=C /usr/bin/grep -nE -- $'\xE2[\x98-\x9E]|\xF0\x9F' "$1" 2>/dev/null)
 }
 
 run_checks() {   # $1 = file
@@ -247,6 +260,8 @@ self_test() {
     printf 'echo "[ WARN ] also fine"\n'
     printf 'echo "[x] a checkbox is not a badge"\n'
     printf 'echo "   · an item · with an inline separator"\n'
+    printf 'echo "\u25b8 Yours to act on"\n'
+    printf 'echo "     \u2192 System Settings \u203a Users"\n'
     printf 'echo "        ↳ skipped — kept in place."\n'
     printf 'echo "usage: widget --dry-run --json"\n'
     printf 'printf "  %%s ──▶ %%s\\\\n" "$a" "$b"\n'
@@ -263,15 +278,15 @@ self_test() {
   # must stay quiet, and in a printed string must still fire.
   jsq="$dir/quiet.js"; jsl="$dir/loud.js"
   {
-    printf '// %s a retired bullet, a divider %s and an emoji %s, all in comments\n' '•' '──────' '✅'
-    printf '/* %s and a block comment too */\n' '•'
-    printf ' * %s a continuation line\n' '•'
-    printf 'const ok = "[ PASS ] fine";\n'
+    printf '// %s a retired bullet, a divider %s and an emoji %s, all in comments\n' '•' '──────' '✅'   # signet-lint: fixture
+    printf '/* %s and a block comment too */\n' '•'   # signet-lint: fixture
+    printf ' * %s a continuation line\n' '•'   # signet-lint: fixture
+    printf 'const ok = "[ PASS ] fine";\n'   # signet-lint: fixture
   } > "$jsq"
   {
-    printf '// a comment that is not the violation\n'
-    printf 'const bad = "[NOPE] unpadded AND unknown, in a printed string";\n'
-    printf 'const worse = "[PASS] the right word in the wrong shape";\n'
+    printf '// a comment that is not the violation\n'   # signet-lint: fixture
+    printf 'const bad = "[NOPE] unpadded AND unknown, in a printed string";\n'   # signet-lint: fixture
+    printf 'const worse = "[PASS] the right word in the wrong shape";\n'   # signet-lint: fixture
   } > "$jsl"
 
   fires() {   # $1 = label  $2 = function  $3 = file
