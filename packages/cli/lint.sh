@@ -34,13 +34,32 @@ is_known_badge() {
 # and any file that documents these rules has to quote the wrong forms somewhere.
 # The explicit marker covers the other case: test fixtures, which are code that
 # writes deliberately non-conforming text.
+#
+# `//`, `*` and `/*` are here for the same reason `#` is, and they were added the first time a
+# non-shell file was linted: the CVER surface is no longer only shell. A JS module that prints a
+# report to a person is held to these rules, and without this every `// ── section ──` divider and
+# every 🩸 in a comment came back as a violation — three false positives on the first file, which is
+# how a lint teaches people to stop running it.
 _skip_line() {   # $1 = raw line
   local t="${1#"${1%%[![:space:]]*}"}"       # strip leading whitespace
-  case "$t" in \#*) return 0 ;; esac
-  case "$1" in *'# signet-lint: fixture'*) return 0 ;; esac
+  case "$t" in \#* | //* | /\** | \**) return 0 ;; esac
+  case "$1" in *'signet-lint: fixture'*) return 0 ;; esac
   return 1
 }
 
+# ---- the blind spot, named so nobody mistakes a clean run for a conforming tool ----
+#
+# Every badge check below reads a LITERAL in the source. A tool that assembles its badge at run
+# time — `BADGE(role)`, `badge.padEnd(4)`, a lookup table — has no literal to read, so it can print
+# a bare `PASS` for a week and lint clean the whole time. Found 2026-08-02 in reef's site-health.js,
+# which did exactly that; three violations were reported and the one that mattered was not among
+# them.
+#
+# No check was added for it, deliberately: the candidate rule ("a bare uppercase badge word in a
+# string") fires on this file, on SPEC.md, and on every test that asserts the shape — a lint that
+# guesses is worse than one that waits. The honest fix belongs in the tool: assert the RENDERED
+# line, which is a thing only the tool can see.
+#
 # ---- C1 · an unknown badge -------------------------------------------------
 # Anything shaped like a badge — four uppercase letters in brackets, padded or
 # not — whose word isn't in the closed set. Padded and unpadded are checked
@@ -239,6 +258,22 @@ self_test() {
     printf 'echo "[ PASS ] a check passed"\n'
   } > "$harness"
 
+  # A non-shell file, because `//` was taught to _skip_line and a skip rule that skips too much is
+  # indistinguishable from a lint that works. The pair is the point: the same glyphs in a comment
+  # must stay quiet, and in a printed string must still fire.
+  jsq="$dir/quiet.js"; jsl="$dir/loud.js"
+  {
+    printf '// %s a retired bullet, a divider %s and an emoji %s, all in comments\n' '•' '──────' '✅'
+    printf '/* %s and a block comment too */\n' '•'
+    printf ' * %s a continuation line\n' '•'
+    printf 'const ok = "[ PASS ] fine";\n'
+  } > "$jsq"
+  {
+    printf '// a comment that is not the violation\n'
+    printf 'const bad = "[NOPE] unpadded AND unknown, in a printed string";\n'
+    printf 'const worse = "[PASS] the right word in the wrong shape";\n'
+  } > "$jsl"
+
   fires() {   # $1 = label  $2 = function  $3 = file
     before="$VIOLATIONS"; VIOLATIONS=0
     "$2" "$3" 2>/dev/null
@@ -270,6 +305,9 @@ self_test() {
   silent "emoji       " check_emoji             "$good"
   silent "seal        " check_header_seal       "$good"
   silent "seal/script " check_header_seal       "$harness"
+  silent "js/comment  " run_checks              "$jsq"
+  fires  "js/string   " check_unknown_badge     "$jsl"
+  fires  "js/string   " check_badge_padding     "$jsl"
 
   rm -rf "$dir"
   [ "$rc" -eq 0 ] && echo "self-test ok" || echo "self-test BROKEN — fix the lint before trusting a clean run" >&2
