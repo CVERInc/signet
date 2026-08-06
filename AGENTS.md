@@ -38,25 +38,25 @@ python3 packages/voice/voicelint.py --locale zh-TW FILE  # force a locale
 All five verified passing in this checkout. `scripts/test.sh` is the whole gate — there
 is no separate lint/typecheck step to remember.
 
-**The pre-push gate is per-clone and off by default.** `hooks/pre-push` is tracked but
-git ignores it until you run `git config core.hooksPath hooks` once. Do that in a fresh
-clone or you will push red. (Side effect, already accepted machine-wide: a local
-`core.hooksPath` shadows the global one, so the commit-identity guard stops running here
-and a daily audit covers it instead. Don't "fix" that by moving hooks into `.git/hooks`.)
+**The pre-push gate is per-clone and off by default.** `hooks/pre-push` is tracked, but git
+does not look there until you run `git config core.hooksPath hooks` once. Do that in a fresh
+clone or you will push red. Note that this setting is repo-local and overrides any global
+`core.hooksPath` you have configured, so install it deliberately rather than as a reflex.
 
 ## Non-negotiable rules (break one and you ship something you shouldn't)
 
 1. **🔴 Never copy a signet file into a consumer. Import the package.** A seal that
    exists in two places is not a seal. This is not style — it is the one incident this
-   repo is built around: in 2026-07 the locale banner was copied into sitetile, then got
-   four weeks of fixes *on the copy only*, while both files still said `@cvernet/signet`
-   in their headers, so everyone who checked was reading the stale one. `tile` now has a
-   detector (`packages/sitetile/no-second-copy.test.mjs`) that fires on a filename clash
-   or a file starting with `/* @cvernet/signet`. If you feel the urge to "copy it and
-   tweak", the answer is a PR here.
+   repo is built around: in 2026-07 the locale banner was copied into a consuming site
+   renderer, then got four weeks of fixes *on the copy only*, while both files still said
+   `@cvernet/signet` in their headers, so everyone who checked was reading the stale one.
+   That consumer now runs a detector in its own suite, firing on a filename clash with a
+   signet export or on a file that begins with `/* @cvernet/signet`. If you feel the urge
+   to "copy it and tweak", the answer is a PR here.
 2. **Reaching live is three steps, and skipping any one means nothing shipped.**
-   `npm publish` → bump the dependency in `tile` → redeploy the runner. A merged commit
-   on `main` is not a released web package.
+   `npm publish` → bump the dependency in the consuming repo → redeploy that consumer. A
+   merged commit on `main` is not a released web package, and a published package is not a
+   live site.
 3. **🔴 The native side has no version gate.** Its consumers depend on
    `.package(url: …/signet, branch: "main")` — verified today in `clioil` and `andross` —
    so **a push to `main` ships to them immediately**, with no tag, no semver, and no
@@ -73,11 +73,12 @@ and a daily audit covers it instead. Don't "fix" that by moving hooks into `.git
    (feelreef, only `--color-*`) — through a single fallback chain collapsed into `--lb-*`
    internals. The dark block swaps only the standalone tail of that chain; in a themed
    host it is a deliberate no-op. Editing it as if it had one host silently breaks the other.
-6. **Don't run or repair `packages/web/test/locale-banner-equivalence.mjs`.** It is a
-   frozen one-shot proof for 0.6.0, deliberately not wired into `scripts/test.sh`. It
-   crashes with `ENOENT` today, and that is the *success* condition: the sitetile copy it
-   compared against was deleted on purpose (tile `5dd3f76`). Its header records what it
-   proved. Leave it as evidence.
+6. **Don't repair `packages/web/test/locale-banner-equivalence.mjs`.** It is a frozen
+   one-shot proof for 0.6.0, deliberately not wired into `scripts/test.sh`. Run it and it
+   exits `0` after telling you why it cannot run: the third specimen it compared against —
+   the pre-merge copy inside the consuming site renderer — was deleted upstream when the
+   merge landed, which is the *success* condition. Its header records what it proved.
+   Leave it as evidence.
 7. **Only DECIDED rules get linted.** `packages/cli/lint.sh` deliberately does not check
    anything marked TBD in `SPEC.md` — a lint that guesses is worse than one that waits.
    If you want a new check, decide the rule in `SPEC.md` first.

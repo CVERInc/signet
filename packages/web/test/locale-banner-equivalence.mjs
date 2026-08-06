@@ -16,14 +16,33 @@
 // styles, never screenshots.
 //
 //   node packages/web/test/locale-banner-equivalence.mjs
-import pw from '/Users/chodaict/Developer/ejecta/tools/fidelity/node_modules/playwright/index.js';
-const { chromium } = pw;
+//
+// Two of the three inputs are not in this repository and never will be: a playwright
+// install, and the pre-merge copy of the banner that lived in the consuming site
+// renderer. That copy was DELETED upstream when 0.6.0 landed — which is the success
+// condition, not a fault — so this harness no longer has a third specimen to compare
+// against. It is kept as the record of what was proven, above. Point the two env vars
+// at real files only if you deliberately want to re-run it against history.
 import { readFileSync } from 'node:fs';
 import { execSync } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
 
-const NEW = readFileSync('/Users/chodaict/Developer/signet/packages/web/src/locale-banner.css', 'utf8');
-const OLD_SIGNET = execSync('git -C /Users/chodaict/Developer/signet show HEAD:packages/web/src/locale-banner.css', { encoding: 'utf8' });
-const OLD_TILE = readFileSync('/Users/chodaict/Developer/tile/packages/sitetile/astro/src/packages/lingo/locale-banner.css', 'utf8');
+const REPO = fileURLToPath(new URL('../../../', import.meta.url));
+const PREMERGE = process.env.PREMERGE_BANNER_CSS;
+if (!PREMERGE) {
+  console.error('locale-banner-equivalence: frozen record, not a runnable test.');
+  console.error('The pre-merge specimen it compares against was removed upstream by the');
+  console.error('0.6.0 merge this file documents. Nothing is broken; there is nothing to');
+  console.error('repair. Set PREMERGE_BANNER_CSS=<path to a pre-merge locale-banner.css>');
+  console.error('to re-run it against history.');
+  process.exit(0);
+}
+
+const { chromium } = await import(process.env.PLAYWRIGHT_ENTRY ?? 'playwright');
+
+const NEW = readFileSync(`${REPO}packages/web/src/locale-banner.css`, 'utf8');
+const OLD_SIGNET = execSync(`git -C ${REPO} show HEAD:packages/web/src/locale-banner.css`, { encoding: 'utf8' });
+const OLD_TILE = readFileSync(PREMERGE, 'utf8');
 
 // mbpa's real token values (pajicomic), light scheme.
 const THEMED = `--gd-bg:#fdfcff;--gd-surface:#ffffff;--gd-text:#34303c;--gd-muted:#70697d;
