@@ -14,10 +14,11 @@ Signet is **the design seal CVER stamps onto every surface** — one source of t
 palette, tokens, glass, components, badges and voice, so the Mac apps and the sitetile
 sites render as the same family. (Native consumers today: `clioil`, `andross`. The
 README also names snapsift and reepub; neither has a `Package.swift`, so read that line
-as intent, not as wiring.) It is **four packages in
-one repo**, each turning the same roles into a different surface: `native` (SwiftUI),
-`web` (CSS + Astro/Svelte, published as `@cvernet/signet`), `cli` (a static linter for
-terminal output), `voice` (a localization ruler). The aesthetic will follow the times;
+as intent, not as wiring.) It is **five packages in
+one repo**: three that turn the same roles into a surface — `native` (SwiftUI), `web`
+(CSS + Astro/Svelte, published as `@cvernet/signet`), `cli` (terminal output) — and two
+rulers that read what lands on them, `voice` (localization) and `surface` (what a public
+repo says about the machine that built it). The aesthetic will follow the times;
 the seal is what stays — which is why the public API keeps a brand-stable `CVER*`
 prefix (`CVERTheme`, `CVERRadius`) while the package is named `Signet`.
 
@@ -33,9 +34,12 @@ swift run -c release SignetTests               # the framework-free smoke runner
 
 python3 packages/voice/voicelint.py FILE...              # locale inferred from path (ir/zh-tw/… → zh-TW)
 python3 packages/voice/voicelint.py --locale zh-TW FILE  # force a locale
+
+bash packages/surface/leaklint.sh --self-test   # prove the publication gate can still go red
+bash packages/surface/leaklint.sh               # scan tracked files for a real home-directory path
 ```
 
-All five verified passing in this checkout. `scripts/test.sh` is the whole gate — there
+All seven verified passing in this checkout. `scripts/test.sh` is the whole gate — there
 is no separate lint/typecheck step to remember.
 
 **The pre-push gate is per-clone and off by default.** `hooks/pre-push` is tracked, but git
@@ -94,6 +98,9 @@ clone or you will push red. Note that this setting is repo-local and overrides a
   scattered `あなた`, literal `당신`, …). A `[ PASS ]` means no fingerprints, not good prose.
 - **`packages/cli/lint.sh` reads files and runs nothing.** It is never a runtime
   dependency of the CLIs it inspects; it only reads them.
+- **`leaklint.sh` catches one residue, not "is this safe to publish".** Home-directory paths in
+  tracked files. It cannot know your private repository names — that list would have to live in a
+  public file to run in CI, which is the leak it prevents.
 - **Two themes ship** (`ReefTheme`, `AndrossTheme`). There is no theme registry, no
   runtime theme loading, and no web↔native token sync check — the two sides are kept
   aligned by hand.
@@ -104,5 +111,7 @@ clone or you will push red. Note that this setting is repo-local and overrides a
 - `packages/cli/SPEC.md` — the authority for badges and terminal output; `AUDIT.md` for
   what was found in the CLIs.
 - `packages/voice/README.md` — what the voice ruler can and cannot see, per locale.
+- `packages/surface/README.md` — the publication ruler, and why a placeholder home path is
+  not a finding.
 - `packages/web/package.json` — the real export surface (`./corners.css`, `./Arrow.astro`, …).
 - `.github/workflows/ci.yml` — macos-15, and it runs exactly `./scripts/test.sh`.

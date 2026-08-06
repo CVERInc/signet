@@ -15,4 +15,11 @@ swift build -c release
 echo "▸ smoke checks"
 swift run -c release SignetTests
 
+# --self-test first, deliberately: a clean scan proves nothing until you have watched the gate
+# go red on a planted specimen. This one shipped its first run reporting four real findings and
+# exiting 0, so the green is not trusted here without the proof that red is still reachable.
+echo "▸ surface leaklint"
+bash packages/surface/leaklint.sh --self-test
+bash packages/surface/leaklint.sh
+
 echo "✓ all checks passed"
