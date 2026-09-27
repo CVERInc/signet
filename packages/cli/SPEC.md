@@ -245,7 +245,9 @@ printing `0.0 GB` when 23 things moved is ruler 9.
 **A cursor answers a different question than a checkbox.** `[x]` / `[ ]` says
 *is this one chosen* — several rows can carry it at the same time, or none.
 `❯` says *where are you* — exactly one row, always, and standing under a row is
-not the same as having chosen it. clikae has been rendering this on the home
+not the same as having chosen it. An empty list has no cursor at all; there is
+no row for it to answer for, and printing one anyway would be claiming a
+position that doesn't exist. clikae has been rendering this on the home
 board, the resume picker, the `clean` list and the relay menu; ruler 1 just
 never had it on the page. It is canon, not decoration, so the emoji lint
 whitelists it by codepoint — U+276F falls inside the byte range the emoji check

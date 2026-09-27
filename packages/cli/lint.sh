@@ -240,6 +240,14 @@ run_checks() {   # $1 = file
 # A lint whose patterns silently stop matching reads exactly like a clean repo.
 # So every check gets a fixture it MUST fire on. If a check goes quiet here, the
 # lint reports itself broken rather than blessing the codebase.
+#
+# Fixture text writes non-ASCII marks as \xHH byte escapes, never \uXXXX —
+# found while wiring the cursor mark in: under a forced C locale, bash 5.2's
+# printf can fail to convert \uXXXX to UTF-8 and fall back to printing the
+# escape text itself, which made the mixed-glyph fixture below carry no real
+# bytes at all and this whole function report itself BROKEN under LC_ALL=C
+# while passing clean under a UTF-8 one. \xHH inserts the byte, no locale
+# involved — same fix check_emoji itself already uses to read the file.
 self_test() {
   local dir bad good harness mixed rc=0 before
   dir="$(mktemp -d)" || { echo "self-test: mktemp failed" >&2; return 1; }
@@ -274,13 +282,13 @@ self_test() {
     printf 'echo "[ WARN ] also fine"\n'
     printf 'echo "[x] a checkbox is not a badge"\n'
     printf 'echo "   · an item · with an inline separator"\n'
-    printf 'echo "\u25b8 Yours to act on"\n'
-    printf 'echo "     \u2192 System Settings \u203a Users"\n'
+    printf 'echo "\xe2\x96\xb8 Yours to act on"\n'
+    printf 'echo "     \xe2\x86\x92 System Settings \xe2\x80\xba Users"\n'
     printf 'echo "        ↳ skipped — kept in place."\n'
     printf 'echo "usage: widget --dry-run --json"\n'
     printf 'printf "  %%s ──▶ %%s\\\\n" "$a" "$b"\n'
     printf '# ── a source divider ─────────────────────────────────────────\n'   # signet-lint: fixture — must name the mark it forbids
-    printf 'echo "  \u276f 3) project-x — a cursor, not a checkbox"\n'
+    printf 'echo "  \xe2\x9d\xaf 3) project-x — a cursor, not a checkbox"\n'
   } > "$good"
   {
     printf '#!/usr/bin/env bash\n'
@@ -296,7 +304,7 @@ self_test() {
   {
     printf '#!/usr/bin/env bash\n'
     printf '# mixed — the thing you can read.\n'
-    printf 'echo "\u276f \u2705 the cursor is canon, the checkmark is not"\n'   # signet-lint: fixture
+    printf 'echo "\xe2\x9d\xaf \xe2\x9c\x85 the cursor is canon, the checkmark is not"\n'   # signet-lint: fixture
   } > "$mixed"
 
   # A non-shell file, because `//` was taught to _skip_line and a skip rule that skips too much is

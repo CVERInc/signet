@@ -22,4 +22,10 @@ echo "▸ surface leaklint"
 bash packages/surface/leaklint.sh --self-test
 bash packages/surface/leaklint.sh
 
+# Same reasoning as leaklint above, and the gap it closes: nothing in CI ran this
+# before — scripts/test.sh is the whole gate (AGENTS.md), so a self-test this
+# file never calls is a self-test nobody has watched fail in CI.
+echo "▸ cli lint self-test"
+bash packages/cli/lint.sh --self-test
+
 echo "✓ all checks passed"
