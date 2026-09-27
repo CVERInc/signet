@@ -74,8 +74,9 @@ deliberately non-conforming).
 
 Decided and in `SPEC.md`: the six state badges, sizes, streams, group headers
 (`▸`), the one bullet (`·`), retired rules, the selection mark (`[x]`), the
-result line, and colour — which **amplifies but never carries**, the test being
-that you can pipe the output to a file and lose no meaning.
+cursor mark (`❯`), the result line, and colour — which **amplifies but never
+carries**, the test being that you can pipe the output to a file and lose no
+meaning.
 
 Six of those are mechanically enforced. The rest are judgement, and the lint
 deliberately stays out: one that guesses is worse than one that waits.
