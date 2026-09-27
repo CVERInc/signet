@@ -203,11 +203,25 @@ check_rule() {   # $1 = file
 #
 # The family's own marks sit outside both and stay quiet: · ▸ ↳ → ▶ ─. That is a
 # fixture in the self-test, not a claim here.
+#
+# One mark doesn't sit outside: `❯` (U+276F), the cursor role SPEC.md decided
+# (signet#2) — its second byte, 0x9D, falls inside \x98-\x9E by UTF-8 accident,
+# same block, unrelated glyph. The fix is an enumerated whitelist of exact
+# byte sequences checked one literal at a time, never a carved-out sub-range —
+# widening this to "let 0x9D through" would silently pardon anything else that
+# ever lands there, which is exactly the mistake check_badge_translated's
+# [:ascii:] failure already taught this file to avoid. A line keeping only
+# canon marks stays quiet; a real emoji riding beside one on the same line
+# still fires, because the whitelist strips the mark, not the line.
+EMOJI_CANON=$'\xE2\x9D\xAF'   # ❯ U+276F — cursor (SPEC.md → Structure)
+
 check_emoji() {   # $1 = file
-  local no line
+  local no line stripped
   while IFS=: read -r no line; do
     [ -n "$no" ] || continue
     _skip_line "$line" && continue
+    stripped="${line//$EMOJI_CANON/}"
+    printf '%s' "$stripped" | LC_ALL=C /usr/bin/grep -qE -- $'\xE2[\x98-\x9E]|\xF0\x9F' || continue
     report "$1:$no" "emoji" "a printed emoji — the badge already says it, in eight columns"
   done < <(LC_ALL=C /usr/bin/grep -nE -- $'\xE2[\x98-\x9E]|\xF0\x9F' "$1" 2>/dev/null)
 }
@@ -226,8 +240,16 @@ run_checks() {   # $1 = file
 # A lint whose patterns silently stop matching reads exactly like a clean repo.
 # So every check gets a fixture it MUST fire on. If a check goes quiet here, the
 # lint reports itself broken rather than blessing the codebase.
+#
+# Fixture text writes non-ASCII marks as \xHH byte escapes, never \uXXXX —
+# found while wiring the cursor mark in: under a forced C locale, bash 5.2's
+# printf can fail to convert \uXXXX to UTF-8 and fall back to printing the
+# escape text itself, which made the mixed-glyph fixture below carry no real
+# bytes at all and this whole function report itself BROKEN under LC_ALL=C
+# while passing clean under a UTF-8 one. \xHH inserts the byte, no locale
+# involved — same fix check_emoji itself already uses to read the file.
 self_test() {
-  local dir bad good harness rc=0 before
+  local dir bad good harness mixed rc=0 before
   dir="$(mktemp -d)" || { echo "self-test: mktemp failed" >&2; return 1; }
   # Extensionless, because that is what the seal check keys on: these two stand
   # in for a tool you type.
@@ -260,18 +282,30 @@ self_test() {
     printf 'echo "[ WARN ] also fine"\n'
     printf 'echo "[x] a checkbox is not a badge"\n'
     printf 'echo "   · an item · with an inline separator"\n'
-    printf 'echo "\u25b8 Yours to act on"\n'
-    printf 'echo "     \u2192 System Settings \u203a Users"\n'
+    printf 'echo "\xe2\x96\xb8 Yours to act on"\n'
+    printf 'echo "     \xe2\x86\x92 System Settings \xe2\x80\xba Users"\n'
     printf 'echo "        ↳ skipped — kept in place."\n'
     printf 'echo "usage: widget --dry-run --json"\n'
     printf 'printf "  %%s ──▶ %%s\\\\n" "$a" "$b"\n'
     printf '# ── a source divider ─────────────────────────────────────────\n'   # signet-lint: fixture — must name the mark it forbids
+    printf 'echo "  \xe2\x9d\xaf 3) project-x — a cursor, not a checkbox"\n'
   } > "$good"
   {
     printf '#!/usr/bin/env bash\n'
     printf '# just some harness\n'
     printf 'echo "[ PASS ] a check passed"\n'
   } > "$harness"
+
+  # The cursor mark (U+276F) sits inside the same UTF-8 byte range the emoji
+  # check scans, but SPEC.md gives it a job no emoji here does — it must stay
+  # quiet alone ($good, above) and a real emoji riding on the same line must
+  # still fire (the case the issue named: "a second glyph riding along").
+  mixed="$dir/mixed.sh"
+  {
+    printf '#!/usr/bin/env bash\n'
+    printf '# mixed — the thing you can read.\n'
+    printf 'echo "\xe2\x9d\xaf \xe2\x9c\x85 the cursor is canon, the checkmark is not"\n'   # signet-lint: fixture
+  } > "$mixed"
 
   # A non-shell file, because `//` was taught to _skip_line and a skip rule that skips too much is
   # indistinguishable from a lint that works. The pair is the point: the same glyphs in a comment
@@ -323,6 +357,7 @@ self_test() {
   silent "js/comment  " run_checks              "$jsq"
   fires  "js/string   " check_unknown_badge     "$jsl"
   fires  "js/string   " check_badge_padding     "$jsl"
+  fires  "emoji/mixed " check_emoji             "$mixed"
 
   rm -rf "$dir"
   [ "$rc" -eq 0 ] && echo "self-test ok" || echo "self-test BROKEN — fix the lint before trusting a clean run" >&2
