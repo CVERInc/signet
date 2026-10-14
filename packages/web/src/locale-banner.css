@@ -111,7 +111,7 @@
   font: inherit;
   font-weight: 500;
   padding: 0.4rem 0.85rem;
-  border-radius: 9999px;
+  border-radius: var(--gd-pill, var(--gd-btn-radius, 9999px));
   cursor: pointer;
   white-space: nowrap;
 }
@@ -129,7 +129,7 @@
   display: inline-flex;
   align-items: center;
   padding: 0.4rem 1rem;
-  border-radius: var(--gd-pill, 9999px);
+  border-radius: var(--gd-pill, var(--gd-btn-radius, 9999px));
   background: var(--lb-fill);
   color: var(--lb-fill-ink);
   font-weight: 600;
