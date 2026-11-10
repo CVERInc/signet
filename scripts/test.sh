@@ -29,3 +29,13 @@ echo "▸ cli lint self-test"
 bash packages/cli/lint.sh --self-test
 
 echo "✓ all checks passed"
+
+# The web package's build-time corner rule. Plain node + postcss; skipped when node or the
+# package's dev dependencies are absent (the Swift-only CI image), never silently on a dev box
+# that has them.
+if command -v node >/dev/null 2>&1 && [ -d packages/web/node_modules/postcss ]; then
+  echo "▸ web: postcss-round-corners"
+  node packages/web/test/postcss-round-corners.mjs
+else
+  echo "▸ web: postcss-round-corners SKIPPED (no node or packages/web/node_modules)"
+fi
