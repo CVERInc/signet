@@ -19,9 +19,27 @@
   corner-shape: squircle;
 }
 
-/* Keep genuinely circular elements circular — squircling a 50% radius (avatars,
-   dots, circular badges) reads wrong. Opt an element back out with
-   `corner-shape: round`. */
-:where(.rounded-full, [style*="border-radius:50%"], [style*="border-radius: 50%"]) {
+/* Keep genuinely circular elements circular, and pills pill-shaped: squircling a
+   50% or 999px radius (avatars, dots, circular badges, round buttons, pills) reads
+   wrong — a circle comes out as a rounded square.
+
+   CSS cannot ask "is this radius at least half the box?", so the opt-out names the
+   shapes the way their authors do: Tailwind's `.rounded-full`, the usual inline
+   full radii, and class names that say pill / circle / avatar / dot / fab. Not
+   "round": that substring is in Tailwind's finite `rounded-lg` and in `background`.
+   Erring wide is safe: an element caught here that has a small radius keeps an
+   ordinary round arc instead of a squircle, which is hard to see; a circle missed
+   here is the bug. (2026-11-10: feelreef's ⌘K button, `.cp-fab` with a class-set
+   50%, drew as a rounded square in Chromium on every signed-in page; Safari has no
+   corner-shape and looked right.) Anything else opts out with `corner-shape: round`. */
+:where(
+  .rounded-full,
+  [style*="border-radius:50%"], [style*="border-radius: 50%"],
+  [style*="border-radius:100%"], [style*="border-radius: 100%"],
+  [style*="border-radius:999"], [style*="border-radius: 999"],
+  [class*="pill"], [class*="circle"], [class*="avatar"],
+  [class~="dot"], [class*="-dot"], [class*="dot-"], [class*="fab"],
+  input[type="radio"]
+) {
   corner-shape: round;
 }
