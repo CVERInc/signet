@@ -1,6 +1,6 @@
 {
   "name": "@cvernet/signet",
-  "version": "0.6.1",
+  "version": "0.7.0",
   "description": "The web side of the Signet design seal — CVER's shared web design elements. Framework-agnostic CSS with Astro and Svelte components.",
   "license": "MIT",
   "type": "module",
@@ -15,6 +15,10 @@
   ],
   "exports": {
     "./corners.css": "./src/corners.css",
+    "./postcss-round-corners": {
+      "types": "./src/postcss-round-corners.d.ts",
+      "default": "./src/postcss-round-corners.js"
+    },
     "./transitions.css": "./src/transitions.css",
     "./view-transitions": {
       "types": "./src/view-transitions.d.ts",
@@ -47,10 +51,22 @@
     "i18n",
     "astro",
     "svelte",
-    "css"
+    "css",
+    "postcss-plugin"
   ],
   "sideEffects": [
     "*.css",
     "src/locale-banner.js"
-  ]
+  ],
+  "devDependencies": {
+    "postcss": "^8.5.32"
+  },
+  "peerDependencies": {
+    "postcss": "^8.0.0"
+  },
+  "peerDependenciesMeta": {
+    "postcss": {
+      "optional": true
+    }
+  }
 }

@@ -14,6 +14,40 @@ the native apps do. Framework-agnostic CSS with thin Astro and Svelte wrappers.
 npm install @cvernet/signet
 ```
 
+## Corners
+
+```js
+import '@cvernet/signet/corners.css';
+```
+
+Every element that has a `border-radius` gets `corner-shape: squircle` (continuous
+corners, Chromium only today; other browsers keep the plain arc).
+
+A circle or a pill must not be squircled: a `50%` avatar would draw as a rounded
+square. CSS has no selector for "this radius is at least half the box", so
+`corners.css` can only recognise those shapes by name (`.rounded-full`, class
+names containing `pill`, `circle`, `avatar`, `dot`, `fab`, and inline full radii).
+
+To cover every circle and pill in your own stylesheets without relying on class
+names, add the build-time plugin. It reads the `border-radius` you wrote and adds
+`corner-shape: round` to the same rule when the radius is a full one (`50%`,
+`999px`, `100vmax`, `calc(infinity * 1px)`, …):
+
+```js
+// vite.config.js (Vite, SvelteKit, Astro)
+import roundCorners from '@cvernet/signet/postcss-round-corners';
+
+export default {
+  css: { postcss: { plugins: [roundCorners()] } },
+};
+```
+
+It needs `postcss` 8, which Vite already ships. Pass `{ vars: ['--radius-pill'] }`
+if your pills are written as `border-radius: var(--radius-pill)`.
+
+Not covered by the plugin: a pill written as a finite length (`22px` on a 44px
+button) and radii set in inline `style=""`. Give those `corner-shape: round` by hand.
+
 ## Arrow
 
 A directional link arrow with a tail-retract hover morph. At **rest** it's a
